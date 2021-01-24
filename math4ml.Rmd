@@ -1,0 +1,190 @@
+---
+title: CS5014 Machine Learning  
+subtitle: Lecture 2 Maths background review 
+author: "Lei Fang"
+date: 28 Jan 2021
+output: 
+  beamer_presentation:
+#    keep_tex: true
+#    toc: true
+#    slide_level: 3
+    includes:
+      in_header: sta-beamer-header-simple.txt
+#      after_body: ~/Dropbox/teaching/table-of-contents.txt
+---
+
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = FALSE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(reticulate)
+# py_config()
+```
+# Introduction
+
+## So why this review session ?
+Maths is essential ...
+
+- for CS5014 (all other (data) *science* modules)
+- we use a lot of maths 
+  - rigorous and concise way of communicating results 
+  - help us understand why *and* why not algorithms work
+
+\pause 
+\bigskip Review some key concepts 
+
+- not complete; just a small subset 
+- set the level of math maturity we expect 
+
+\pause
+\bigskip Self-assessment for yourself
+  
+- find the weak or rusty area
+- do self studies 
+
+## Mathematics for machine learning 
+
+Linear algebra
+
+- leap forward from scalar maths e.g. $a + b = c$ 
+  - $a,b,c$are scalars: $1+2 = 3$
+  - $a,b,c$are vectors: $\begin{bmatrix}
+           1 \\
+           2 
+         \end{bmatrix} + \begin{bmatrix}
+           2 \\
+           1 
+         \end{bmatrix} = \begin{bmatrix}
+           3 \\
+           3 
+         \end{bmatrix}$
+
+\pause
+\bigskip Probability theory and statistics 
+
+- study of uncertainty: uncertainty is the norm
+  - e.g. rain tomorrow? blood pressure measurement (reading error)? 
+- how to generalise your results 
+  - from one sample to the universe: vaccine trial
+
+\pause 
+\bigskip Calculus 
+
+- study of continuous (real-valued) functions (using approximation *polynomial*)
+  - $y= sin(x)$ is well approximated by $y=x$ when $x \approx 0$ 
+- useful when we do optimisation 
+
+
+
+# Linear Algebra
+## Linear algebra: Basic concepts
+
+- vectors
+\bigskip
+- norms and distances
+\bigskip
+- linear independence
+\bigskip
+- matrices, linear transformation
+\bigskip
+- matrix arithmetics
+\bigskip
+- rank, determinant, trace
+
+
+## Vector 
+
+A vector is a collection of $n$ salars
+
+- $\vv{a} \in R^n$, default option is column vector i.e. $n\times 1$
+- represents a **displacement** from $\vv{0}$ to $\vv{a}$ in $R^n$
+- e.g. $\vv{a} = \begin{bmatrix}
+           2 \\
+           1 
+         \end{bmatrix}, \textcolor{red}{\vv{b} = \begin{bmatrix}
+           1 \\
+           2 
+         \end{bmatrix}}$ (or $\vv{a} = [2, 1]^T$ to save space)
+\bigskip   
+```{r, figures-side, fig.show="hold", out.width="49%"}
+library(matlib)
+#setting up the plot
+xlim <- c(-1,4)
+ylim <- c(-1,4)
+par(mar=c(3,3,3,0.1)+.1)
+plot(xlim, ylim, type="n", xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+grid()
+# define some vectors
+a=c(2,1)
+b=c(1,2)
+# plot the vectors
+vectors(b, labels="b", pos.lab=4, cex.lab = 3, col="red")
+vectors(a, labels="a", pos.lab=4, cex.lab = 3)
+
+# vec <- rbind(diag(3), c(1,1,1))
+# rownames(vec) <- c("X", "Y", "Z", "J")
+# open3d()
+# vectors3d(vec, color=c(rep("black",3), "red"), lwd=2)
+# # draw the XZ plane, whose equation is Y=0
+# planes3d(0, 0, 1, 0, col="gray", alpha=0.2)
+# vectors3d(c(1,1,0), col="green", lwd=2)
+# plot(xlim, ylim, type="n", xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=3.5, cex.sub=2.5, main = "all the b vectors are the same")
+# grid()
+# vectors(b, labels="b", pos.lab=4, cex.lab = 3, col="red")
+# displacement = c(2,0)
+# vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
+# displacement = c(1,0)
+# vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
+# displacement = c(2,-1)
+# vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
+# displacement = c(0,1)
+# vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
+# displacement = c(0,2)
+# vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
+# vector a+b starting from a is equal to b.
+#vectors(a+b, labels="b", pos.lab=4, frac.lab=.5, origin=a, col="green")
+```
+
+## experiment 
+
+```{r, test-rgl, webgl=TRUE}
+x <- sort(rnorm(1000))
+y <- rnorm(1000)
+z <- rnorm(1000) + atan2(x,y)
+plot3d(x, y, z, col = rainbow(1000))
+```
+
+<!-- A vector is $$\vv{x} $$ -->
+<!-- ## R Markdown -->
+
+<!-- This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+
+<!-- When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. -->
+
+<!-- ## Slide with Bullets -->
+
+<!-- - Bullet 1 -->
+<!-- - Bullet 2 -->
+<!-- - Bullet 3 -->
+
+<!-- ## Slide with R Output -->
+
+<!-- ```{r cars, echo = TRUE} -->
+<!-- summary(cars) -->
+<!-- ``` -->
+
+<!-- ## Slide with Plot -->
+
+<!-- ```{r pressure} -->
+<!-- plot(pressure) -->
+<!-- ``` -->
+
