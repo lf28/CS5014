@@ -11,6 +11,8 @@ output:
     includes:
       in_header: sta-beamer-header-simple.txt
 #      after_body: ~/Dropbox/teaching/table-of-contents.txt
+
+bibliography: "ref.bib"
 ---
 
 
@@ -32,41 +34,46 @@ library(reticulate)
 # Introduction
 
 ## So why this review session ?
-Maths is essential ...
+Maths is useful 
 
-- for CS5014 (all other (data) *science* modules)
-- we use a lot of maths 
-  - rigorous and concise way of communicating results 
-  - help us understand why *and* why not algorithms work
-
+- rigorous and concise way of communicating results 
+- help us understand why *and* why not algorithms work
+- be able to derive your own model and algorithms!
+  
 \pause 
-\bigskip Review some key concepts 
+\bigskip 
 
-- not complete; just a small subset 
-- set the level of math maturity we expect 
+Refresher on essential concepts
+
+- only a refresher; we expect you have learnt them
+  - don't expect to know everything after this lecture
+- not complete and not rigorous 
 
 \pause
 \bigskip Self-assessment for yourself
   
-- find the weak or rusty area
-- do self studies 
+- identify rusty area
+- do self studies afterwards
+- maths learning should be never-ending :-)
 
 ## Mathematics for machine learning 
 
 Linear algebra
 
-- leap forward from scalar maths e.g. $a + b = c$ 
-  - $a,b,c$are scalars: $1+2 = 3$
-  - $a,b,c$are vectors: $\begin{bmatrix}
-           1 \\
-           2 
-         \end{bmatrix} + \begin{bmatrix}
-           2 \\
-           1 
-         \end{bmatrix} = \begin{bmatrix}
-           3 \\
-           3 
-         \end{bmatrix}$
+- leap forward from elementary algebra: 1-d to multi-dimensional
+- number line to a number plane (space)
+<!-- e.g. $a + b = c$  -->
+<!--   - $a,b,c$are scalars: $1+2 = 3$ -->
+<!--   - $a,b,c$are vectors: $\begin{bmatrix} -->
+<!--            1 \\ -->
+<!--            2  -->
+<!--          \end{bmatrix} + \begin{bmatrix} -->
+<!--            2 \\ -->
+<!--            1  -->
+<!--          \end{bmatrix} = \begin{bmatrix} -->
+<!--            3 \\ -->
+<!--            3  -->
+<!--          \end{bmatrix}$ -->
 
 \pause
 \bigskip Probability theory and statistics 
@@ -79,12 +86,38 @@ Linear algebra
 \pause 
 \bigskip Calculus 
 
-- study of continuous (real-valued) functions (using approximation *polynomial*)
+- study of continuous (real-valued) functions (using approximation, say *polynomial*)
   - $y= sin(x)$ is well approximated by $y=x$ when $x \approx 0$ 
 - useful when we do optimisation 
 
 
 
+## Useful textbook and references (read the italic entries!)
+
+**Linear algebra**
+
+  - [*Learning from Data Supplementary Mathematics (Vector and Linear Algebra) by David Barber*; https://api.semanticscholar.org/CorpusID:18857001](https://api.semanticscholar.org/CorpusID:18857001)
+  - [*Chapter 2 of Deep Learning by Ian Goodfellow, Yoshua Bengio and Aaron Courville* https://www.deeplearningbook.org/contents/linear_algebra.html](https://www.deeplearningbook.org/contents/linear_algebra.html)
+  - [Introduction to Linear Algebra by Gilbert Strang; http://math.mit.edu/~gs/linearalgebra/](http://math.mit.edu/~gs/linearalgebra/)
+  - [The Matrix Cookbook by Kaare Brandt Petersen, Michael Syskind Pedersen; https://www2.imm.dtu.dk/pubdb/pubs/3274-full.html](https://www2.imm.dtu.dk/pubdb/pubs/3274-full.html)
+    - useful as a reference manual
+    
+##    
+    
+**Probability theory**
+
+  - [*Chapter 2.1-2.3 Information Theory, Inference, and Learning Algorithms by David J.C. MacKay*  http://www.inference.org.uk/itprnn/book.pdf](http://www.inference.org.uk/itprnn/book.pdf)
+  - [*Chapter 3.1-3.9 of Deep Learning by Ian Goodfellow, Yoshua Bengio and Aaron Courville* https://www.deeplearningbook.org/contents/prob.html](https://www.deeplearningbook.org/contents/prob.html)
+  - Introduction to Probability Models by Sheldon Ross
+    - chapter 1; chapter 2.1-2.5, 2.8; chapter 3.1-3.5
+    
+
+
+**Calculus**
+  
+  - Use your book of choice; read multivariate calculus part as well
+  - [Appendix of Bayesian Reasoning and Machine Learning by David Barber http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/200620.pdf ](http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/200620.pdf)
+  
 # Linear Algebra
 ## Linear algebra: Basic concepts
 
@@ -92,13 +125,13 @@ Linear algebra
 \bigskip
 - norms and distances
 \bigskip
-- linear independence
+- linear independence, span, subspace
 \bigskip
 - matrices, linear transformation
 \bigskip
-- matrix arithmetics
+- matrix operations
 \bigskip
-- rank, determinant, trace
+- rank
 
 
 ## Vector 
@@ -106,7 +139,7 @@ Linear algebra
 A vector is a collection of $n$ salars
 
 - $\vv{a} \in R^n$, default option is column vector i.e. $n\times 1$
-- represents a **displacement** from $\vv{0}$ to $\vv{a}$ in $R^n$
+- represents a **displacement**  in $R^n$
 - e.g. $\vv{a} = \begin{bmatrix}
            2 \\
            1 
@@ -152,16 +185,706 @@ vectors(a, labels="a", pos.lab=4, cex.lab = 3)
 # vectors(b+displacement, labels="b", pos.lab=4, cex.lab = 3, origin = displacement, col="red")
 # vector a+b starting from a is equal to b.
 #vectors(a+b, labels="b", pos.lab=4, frac.lab=.5, origin=a, col="green")
+
+```
+---
+
+Some 3-d vectors  $\vv{c} = \begin{bmatrix}
+           2 \\
+           2 \\
+           2
+         \end{bmatrix}, \vv{d} = \begin{bmatrix}
+           2 \\
+           0 \\
+           0
+         \end{bmatrix}, \vv{e} = \begin{bmatrix}
+           3 \\
+           2 \\
+           1
+         \end{bmatrix}$ 
+\bigskip   
+```{r, out.width="60%"}
+library("plot3D")
+x0 <- c(0,0,0)
+y0 <- c(0,0,0)
+z0 <- c(0,0,0)
+x1 <- c(2,2,3)
+y1 <- c(2,0,2)
+z1 <- c(2,0,1)
+cols <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A")
+
+arrows3D(x0, y0, z0, x1, y1, z1, col = cols,
+         lwd = 2, d = 3, 
+         main = "", bty ="g", ticktype = "detailed", xlim= c(-0.5, 3), ylim= c(0, 2), zlim= c(0, 2))
+# Add starting point of arrow
+# points3D(x0, add = TRUE, col="darkred", 
+#           colkey = FALSE, pch = 19, cex = 1)
+# Add labels to the arrows
+text3D(x1, y1, z1, c("c", "d", "e"),
+        col = cols, add=TRUE, colkey = FALSE)
+```
+## Vector addition 
+
+
+$$\vv{a}+\vv{b} = \begin{bmatrix}
+           a_1 \\
+           a_2 \\
+           \vdots\\
+           a_d
+         \end{bmatrix} +  \begin{bmatrix}
+           b_1 \\
+           b_2 \\
+           \vdots\\
+           b_d
+         \end{bmatrix} = \begin{bmatrix}
+           a_1+b_1 \\
+           a_2+b_2 \\
+           \vdots\\
+           a_d+b_d
+         \end{bmatrix}$$
+         
+  - generalisation from scalar arithmetics; remember 2+1 on a number axis ? 
+  - parallelogram rule
+\bigskip
+```{r, out.width="55%"}
+#setting up the plot
+
+xlim <- c(-0.1,3.5)
+ylim <- c(-0.1,3.5)
+par(mar=c(3,3,3,0.1)+.1)
+plot(xlim, ylim, type="n", xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+grid()
+# define some vectors
+a=c(2,1)
+b=c(1,2)
+# plot the vectors
+
+vectors(b, labels="b", pos.lab=4, cex.lab = 3, col="green")
+vectors(a, labels="a", pos.lab=4, cex.lab = 3)
+vectors(a+b, labels="a+b", pos.lab=4, cex.lab=3, col="red")
+# vector a+b starting from a is equal to b.
+vectors(a+b, labels="b", pos.lab=4,  cex.lab=2, frac.lab = 0.5, origin=a, col="green", lty=2)
+
+vectors(a+b, pos.lab=4, frac.lab=.5, origin=b, col="black", lty=2)
+
 ```
 
-## experiment 
 
-```{r, test-rgl, webgl=TRUE}
-x <- sort(rnorm(1000))
-y <- rnorm(1000)
-z <- rnorm(1000) + atan2(x,y)
-plot3d(x, y, z, col = rainbow(1000))
+
+## Vector scaling/multiplication
+
+$$k\cdot \vv{a} = k \cdot \begin{bmatrix}
+           a_1 \\
+           a_2 \\
+           \vdots\\
+           a_d
+         \end{bmatrix} = \begin{bmatrix}
+           k\times a_1 \\
+           k\times a_2 \\
+           \vdots\\
+           k\times a_d
+         \end{bmatrix}, k\in R \text{ or a scalar}$$
+     
+  - geometrically, scaling means shrinking or streching a vector 
+    - the direction does not change but length changes
+  - and obviously $n\cdot \vv{a} = \vv{a}+\ldots+ \vv{a}=\sum_n \vv{a}$
+  - $0\cdot \vv{a} = \vv{0}$
+```{r, out.width="60%"}
+#setting up the plot
+
+xlim <- c(0,8)
+ylim <- c(0,4)
+par(mar=c(3,3,3,0.1)+.1)
+plot(xlim, ylim, type="n", xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+grid()
+# define some vectors
+a=c(2,1)
+# plot the vectors
+
+
+vectors(a, labels="a", pos.lab=4, cex.lab = 3)
+vectors(3*a, labels="3*a", pos.lab=4, cex.lab=3, col="red")
+vectors(0.5*a, labels="0.5*a", pos.lab=3, frac.lab = 0.5, cex.lab=2.5, col="blue")
+# vector a+b starting from a is equal to b.
+
 ```
+
+
+## Inner product 
+
+$$\vv{a}^T \vv{b} = [a_1, a_2\ldots, a_d] \cdot \begin{bmatrix}
+            b_1 \\
+            b_2 \\
+           \vdots\\
+            b_d
+         \end{bmatrix} = \sum_{i=1}^d a_i\times b_i$$
+         
+  - $\vv{a}^T \vv{b} = \vv{b}^T\vv{a}$ and the result is a scalar
+  - $\vv{a}^T(\vv{b}+\vv{c}) = \vv{a}^T\vv{b}+ \vv{a}^T\vv{c}$
+  - $(k\vv{a})^T\vv{b} = \vv{a}^T(k\vv{b})= k(\vv{a}^T\vv{b})$
+  - $\vv{a}^T \vv{a} = \sum_{i=1}^d a_i^2$ is squared Euclidean distance between $\vv{a}$ and $\vv{0}$
+  - $\vv{a}^T \vv{a} \geq 0$ and $\vv{a}=\vv{0}$ if and only if $\vv{a}^T\vv{a} =0$ 
+
+---
+Another interpretation: $$\vv{a}^T \vv{b} = \|\vv{a}\| \|\vv{b}\|cos \theta$$
+```{r, out.width="50%"}
+a <- c(3,1)
+b <- c(1,3)
+sum <- a+b
+
+xlim <- c(0,4)
+ylim <- c(0,4)
+# proper geometry requires asp=1
+plot( xlim, ylim, type="n",  asp = 1, xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+# abline(v=0, h=0, col="gray")
+grid()
+vectors(rbind(a,b), col=c("red", "blue"), cex.lab=c(2.5, 2.5))
+# show the opposing sides of the parallelogram
+# vectors(sum, origin=u, col="red", lty=2)
+# vectors(sum, origin=v, col="blue", lty=2)
+
+# projection of vectors
+vectors(Proj(b,a), labels="P(b,a)", frac.lab = 0.5, lwd=3, cex.lab = 2.5)
+vectors(b, origin=Proj(b,a))
+corner(c(0,0), Proj(b,a), b, d=0.3, col="black")
+arc(Proj(b,a), c(0,0), b, d=.5, col="red")
+
+text(0.6, 0.6, labels = expression(theta), cex=2)
+```
+
+  - $\theta$ is the angle between $\vv{a}, \vv{b}$
+    - $\vv{a}^T\vv{b}=0$ if and only if $\vv{a} \perp \vv{b}$
+  - $\|\vv{a}\|cos \theta$ is the projected length of $\vv{a}$ on $\vv{b}$
+  - $\|\vv{b}\|cos \theta$ is the projected length of $\vv{b}$ on $\vv{a}$
+  - $P(\vv{b}, \vv{a})$ denotes the projected vector of $\vv{b}$ to $\vv{a}$
+    - so  $\|\vv{b}\|cos \theta = \|P(\vv{b}, \vv{a})\|$ 
+  - and (prove it or convince yourself!) $$P(\vv{b}, \vv{a}) = \|\vv{b}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{b}}{\vv{a}^T\vv{a}}  \vv{a}$$
+
+
+## Matrix
+
+A rectangular array of real numbers $A\in R^{m\times n}$
+$$\vv{A} = \begin{bmatrix}
+a_{11} & a_{12} & \ldots & a_{1n}\\
+a_{21} & a_{22} & \ldots & a_{2n} \\
+\vdots & \vdots & & \vdots \\
+a_{m1} & a_{m2} & \ldots & a_{mn}
+\end{bmatrix}  = \begin{bmatrix}
+\vert & \vert &  & \vert\\
+\vv{a}_1 & \vv{a}_2 & \ldots & \vv{a}_{n} \\
+\vert & \vert & & \vert 
+\end{bmatrix} = \begin{bmatrix}
+\text{---} & \vv{\tilde{a}}_1 & \text{---}\\
+\vdots & \vdots & \vdots  \\
+\text{---} & \vv{\tilde{a}}_m & \text{---}
+\end{bmatrix} $$
+
+  - can be viewed as a collection of n column vectors $\vv{A} = [\vv{a}_1, \vv{a}_2, \ldots, \vv{a}_n]$;
+  - or row vectors $\vv{A} = [\vv{\tilde{a}}_1^T, \vv{\tilde{a}}_2^T, \ldots, \vv{\tilde{a}}_m^T]^T$
+  - sometimes written as $\vv{A} = (a_{ij})$ $i= 1,\ldots m, j= 1,\ldots, n$
+  
+  
+## Matrix operations
+
+- addition: $\vv{A} +\vv{B} =\vv{C}=(c_{ij})$ where $c_{ij} = a_{ij} +b_{ij}$
+- scaling: $k\vv{A}= \vv{C}$ where $c_{ij} =k* a_{ij}$ 
+- transpose: $\vv{A}^T = \vv{C}$ where $c_{ij} = a_{ji}$
+- multiplication: Let $\vv{A}\in R^{m\times s}, \vv{B} \in R^{s\times n}$ $$\vv{AB} = \vv{C}, \vv{C} \in R^{m\times n}$$  where $$c_{ij} = \sum_{k=1}^s a_{ik}b_{jk}$$ or $c_{ij} = \vv{\tilde{a}}_i^T\vv{b}_j$
+  - $\vv{A}(\vv{BC}) =(\vv{AB})\vv{C}$
+  - $\vv{AB} \neq \vv{BA}$
+  - $(\vv{AB})^T = \vv{B}^T \vv{A}^T$
+  - $\vv{I}$ identity matrix: $\vv{I}\vv{A} = \vv{A}$ or $\vv{AI}=\vv{A}$
+- inverse (only applies to square matrix): $\vv{A}^{-1} \vv{A}= \vv{AA}^{-1} =\vv{I}$
+
+## Examples 
+
+```{r}
+A <- matrix(c(2,3,6,4,1,1), 3, byrow = T)
+B <- matrix(c(5,1,2,1,2,2), 2)
+C= A%*% B
+write_matex2 <- function(x) {
+  begin <- "\\begin{bmatrix}"
+  end <- "\\end{bmatrix}"
+  X <-
+    apply(x, 1, function(x) {
+      paste(
+        paste(round(x,2), collapse = "&"),
+        "\\\\"
+      )
+    })
+  paste(c(begin, X, end), collapse = "")
+}
+```
+$$
+`r write_matex2(A)` + `r write_matex2(B)`  = ?
+$$
+\pause it is not allowed as the dimensions do not match
+
+
+ 
+$$
+`r write_matex2(A)`^T   = `r write_matex2(t(A))`
+$$
+
+## Example
+
+
+
+$$
+`r write_matex2(A)` \times `r write_matex2(B)`  =  \begin{bmatrix} \tcbhighmath[boxrule=2pt,arc=1pt,colback=blue!10!white,colframe=blue,
+  drop fuzzy shadow=red]{ 2\times 5+3\times 1 }& c_{12}\\
+c_{21}& c_{22}\\
+c_{31}& c_{32}
+\end{bmatrix}
+$$
+$$
+`r write_matex2(A)` \times `r write_matex2(B)`  =  `r write_matex2(C)`
+$$
+
+$$
+`r write_matex2(B)` \times `r write_matex2(A)`  =  `r write_matex2(B%*%A)`
+$$
+
+## Example
+
+The inverse of $\vv{A} = \begin{bmatrix} 3& 0 \\ 0 & 5\end{bmatrix}$ is $\vv{A}^{-1} = \begin{bmatrix} 1/3& 0 \\ 0 & 1/5\end{bmatrix}$ as $\vv{AA}^{-1} = \vv{I}$
+
+\bigskip
+The inverse of $\vv{I}$ is itself $\vv{I}^{-1} =\vv{I}$
+\bigskip
+
+
+
+## Span, linear independence
+
+- **linear combination** is just sum of some scaled vectors
+  - $\lambda_1\cdot \vv{a}_1 + \lambda_2 \cdot \vv{a}_2+\ldots + \lambda_n\vv{a}_n$, $\vv{a}_i \in R^m$ for $i=1,\ldots,n$ 
+  - $\vv{a}_{i}$ are vectors (of the same length) and $\lambda_i$ are the scalars 
+  
+  
+- **span** is the set of all possible linear combination $$\text{Span}( \{\vv{a}_{1}, \vv{a}_2, \ldots,\vv{a}_n\}) = \left\{\sum_{i=1}^n \lambda_i \vv{a}_i | \lambda_i \in R, i= 1,\ldots,n\right \}$$
+  - what is the span of $\{[1,0]^T, [0,1]^T\}$? 
+  - how about $\{[2,1]^T, [0,1]^T\}$? 
+  - how about $\{[2,1]^T, [4,2]^T\}$?
+  - how about $\{[2,1,0]^T, [0,1,0]^T\}$?
+    - it is a **subspace** (bottom plane) in $R^3$
+    
+
+##
+
+```{r, out.width="60%"}
+x0 <- c(0,0)
+y0 <- c(0,0)
+z0 <- c(0,0)
+x1 <- c(2,0)
+y1 <- c(1,1)
+z1 <- c(0,0)
+cols <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A")
+
+arrows3D(x0, y0, z0, x1, y1, z1, col = cols,
+         lwd = 2, d = 3, 
+         main = "", bty ="g", ticktype = "detailed", xlim= c(-0.5, 3), ylim= c(0, 2), zlim= c(0, 2))
+# Add starting point of arrow
+# points3D(x0, add = TRUE, col="darkred", 
+#           colkey = FALSE, pch = 19, cex = 1)
+# Add labels to the arrows
+text3D(x1, y1, z1, c("a1", "a2"),
+        col = cols, add=TRUE, colkey = FALSE)
+```
+
+## 
+
+- **linear independence**: $\{\vv{a}_1, \ldots, \vv{a}_n\}$ is linear independent if there exist no $\lambda_1, \ldots, \lambda_n$ (except all being 0) such that $$\lambda_1\cdot \vv{a}_1 + \lambda_2 \cdot \vv{a}_2+\ldots + \lambda_n\vv{a}_n=\vv{0}$$
+
+  - how about $\{[2,3]^T, [4,6]^T\}$ ?
+  - are $\{[1,0]^T, [0,1]^T\}$ LI?
+  - essentially a way to tell whether there is any *redundant* vectors in the set
+  
+  
+- **rank** of a matrix is defined as the maximum number of linearly independent column vectors 
+
+
+## Example
+
+The column vectors of the matrix
+
+$$[\vv{a}_1, \vv{a}_2, \vv{a}_3]= \begin{bmatrix} 2 &0 & 1 \\
+1&1& 1 \\
+0 &0&0
+\end{bmatrix}$$
+
+are not linearly independent, as 
+$$\lambda_1 \vv{a}_1 +\lambda_2\vv{a}_2+\lambda_3\vv{a}_3 = \vv{0}$$
+
+holds for $\lambda_1=\lambda_2=1, \lambda_3=-2$. In other words, one of them is redundant. And $\text{rank}(\vv{A}) = 2$
+
+  
+
+## Matrix vector multiplication
+\setbeamercovered{invisible}
+$$\vv{A}\vv{x} = \begin{bmatrix}
+\vert & \vert &  & \vert\\
+\vv{a}_1 & \vv{a}_2 & \ldots & \vv{a}_{n} \\
+\vert & \vert & & \vert 
+\end{bmatrix} \begin{bmatrix}
+x_{1}\\
+x_{2}  \\
+\vdots  \\
+x_{n} 
+\end{bmatrix} =  x_1 \begin{bmatrix}
+\vert \\
+\vv{a}_{1}  \\
+\vert 
+\end{bmatrix} + x_2 \begin{bmatrix}
+\vert \\
+\vv{a}_{2}  \\
+\vert 
+\end{bmatrix}+\ldots + x_n \begin{bmatrix}
+\vert \\
+\vv{a}_{n}  \\
+\vert 
+\end{bmatrix}$$
+
+- another view of the multiplication
+- *linear combination* of the column vectors of $\vv{A}$
+  - $x_1\cdot \vv{a}_1 + x_2 \cdot \vv{a}_2+\ldots + x_n\vv{a}_n$
+  - $\vv{a}_{i}$ are the column vectors and $x$ are the scalars 
+- so ... $\vv{Ax} = \vv{y}$ essentially solves for what ?
+\pause 
+  - $\vv{y}$ is in the column space of $\vv{A}$ or not ...
+  - if not, then there is no solution
+  - if yes, there will be some solution(s)? unique solution or ?
+
+
+
+## Matrix vector multiplication (some interpretations)
+
+So $\vv{A}\vv{x}$ is a linear transformation: $\vv{x} \rightarrow \vv{y}$
+
+
+```{r}
+angle = pi/4
+R = matrix(c(cos(angle), -1*sin(angle), sin(angle), cos(angle)), byrow = T, nrow = 2)
+```
+
+- Rotation: rotate $\vv{x}$ anti-clockwise by $\theta$
+  $$R\vv{x} = \begin{bmatrix} cos\theta & -sin\theta \\
+  sin\theta & cos\theta\end{bmatrix} \begin{bmatrix} x_1\\ x_2\end{bmatrix} = `r write_matex2(R)` \begin{bmatrix} x_1\\ x_2\end{bmatrix}$$ say $\theta = \pi/4$
+
+```{r, out.width='50%'}
+xlim <- c(-3,3)
+ylim <- c(-1,3)
+par(mar=c(3,3,3,0.1)+.1)
+plot(xlim, ylim, type="n", xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5, asp = 1)
+grid()
+# define some vectors
+a=c(2,1)
+angle = pi/4
+R = matrix(c(cos(angle), -1*sin(angle), sin(angle), cos(angle)), byrow = T, nrow = 2)
+aprime = t(R%*%(a))
+aprimep = t(R%*%t(aprime))
+# plot the vectors
+vectors(a, labels="a", pos.lab=4, cex.lab = 3, col="red")
+vectors(aprime, labels="Ra", pos.lab=4, cex.lab = 3)
+vectors(aprimep, labels="RRa", pos.lab=4, cex.lab = 3)
+```
+  - $\vv{R}$ is a rotation or orthogonal matrix if $\vv{R}^T = \vv{R}^{-1}$ (what does it imply?)
+  - $\vv{R}^T\vv{R} = \vv{R}\vv{R}^T =\vv{I}$
+  \pause 
+    - preserves length $(\vv{R}\vv{x})^T(\vv{R}\vv{x}) = \vv{x}^T\vv{R}^T\vv{R}\vv{x} = \vv{x}^T\vv{x}$
+
+
+
+##
+
+- Projection (an example): project $\vv{x}$ to $\vv{a}$ \begin{align*}P(\vv{x}, \vv{a}) &= \|\vv{x}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{x}}{\vv{a}^T\vv{a}}  \vv{a} \\
+&= \frac{\vv{a}\cdot \vv{a}^T\vv{x}}{\vv{a}^T\vv{a}} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\vv{x}\end{align*}
+  - $\vv{P} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}$ is a projection matrix (what is the shape of $\vv{P}$?); 
+  - it transforms $\vv{x}$ to its projection 
+  - what if we project it again (and again and again ...) ? i.e. $\vv{P}(\vv{P}\vv{x})$
+  \pause 
+    - it remains unchanged, $\vv{PP}\vv{x} = \vv{P}\vv{x}$
+    - or $\vv{P}\vv{P} = \vv{P}$
+   $$\frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}= \frac{\vv{aa}^T\vv{aa}^T}{(\vv{a}^T\vv{a})^2}= \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}$$
+    - mathematics is the subject of making sense :-)
+
+# Probability theory
+  
+## Probability theory
+
+- Random variable
+\bigskip
+- Probability distribution
+\bigskip
+- Probability mass function and density function
+\bigskip
+- Probability rules
+\bigskip
+- Expectation, variance, covariance
+\bigskip
+- Conditional expectation
+
+## Random variable and probability distribution
+
+**Random variable** $X$ associates with a **probability distribution** $P(X)$
+
+  - formally, a r.v. is a mapping from sample space $\Omega$ to a target space $\mathcal{T}$
+  - e.g. toss a fair coin twice, r.v. $X$ is the number of heads turned up
+    - the sample space is $\Omega =\{HH, TT, HT, TH\}$
+    - target space is $T =\{0,1,2\}$
+    - the probability distribution is 
+$$P(X) = \begin{cases} 0.25 & X=0 \\
+0.5 & X=1 \\
+0.25 & X=2 \end{cases}$$    
+  
+  - the distribution $P$ must satisfy
+  $$P(X=x) >0, \text{ and } \sum_{x\in T} P(X=x) =1$$
+  
+  
+
+## Random variable - discrete r.v.
+  
+If r.v. $X$'s target space $\mathcal{T}$ is discrete
+
+  - $X$ is called **discrete random variable**
+  - the probability distribution $P$ is called **probability mass function** (p.m.f.)
+  - and $$0\leq P(X=x) \leq 1, \text{ and } \sum_{x\in T} P(X=x) =1$$
+  
+  
+  
+## Example - discrete r.v.
+  
+  **Bernoulli distribution**
+  Tossing a coin, $\mathcal{T} = {H, T}$, $$P(X=H) = p , P(X=T) = 1-p, 0\leq p\leq 1$$
+  
+  **Binomial distribution**
+  Tossing a coin $N$ times, the r.v. $X$ that the number of head shows up is 
+  $$P(X=k) = \binom{N}{k} \cdot p^k(1-p)^{N-k}$$ (convince yourself why)
+  
+  **Multinoulli distribution**
+  Throw a fair 6-facet die, $\mathcal{T} = {1, 2,\ldots, 6}$, the distribution is 
+  $$P(X=i) = 1/6$$  
+  Verify the above $P$s satisfy the requirements of p.m.f.
+  
+  
+## Random variable - continuous r.v.
+
+If r.v. $X$'s target space $\mathcal{T}$ is continuous
+  
+  - $X$ is called **continuous random variable **
+  - the probability distribution $p$ is called **probability density function** (p.d.f.)
+  - and satisfies $$p(x) \geq 0, \text{ and } \int_{x\in T} p(x) dx = 1$$
+  - pdf is not probability as $p(x)$ can be greater 1; 
+  - for $\forall x$ $P(X=x) =0$  
+  - calculate probability over an interval: e.g. $$P(X \in [a,b]) = \int_{a}^b p(x) dx$$
+  
+
+  
+## Example - continuous r.v.
+  
+  **Uniform distribution**
+  $\mathcal{T} = [0,1]$, $X$ has equal chance to take any value between 0 and 1; the pdf is 
+$$p(x) = \begin{cases} 1 & x\in [0,1] \\
+0 & \text{otherwise} \end{cases} $$
+
+```{r, out.width="50%"}
+a=0
+b=1
+par(mar=c(4,5,4,0.1)+.1)
+curve(dunif(x, min = a, max = b), 
+      from = -0.5, to = 1.5, 
+      n = 100000, 
+      col = "darkblue", 
+      lwd = 2, 
+      yaxt = "n",
+      ylab = 'pdf', cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+```
+Easy to verify $\int_0^1 p(x)dx = \int_0^1 dx =1$
+\bigskip
+
+What's the probability that $0<X<0.5$ ? 
+
+## Example - continuous r.v.
+
+**Gaussian distribution**
+$\mathcal{T} = R$, or $X \in R$ the pdf is
+
+$$p(x) = \normal{x; \mu}{\sigma^2}=\frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{1}{2}(\frac{x-\mu}{\sigma})^2}$$
+ $(\frac{x-\mu}{\sigma})^2$ is a distance measure: how far $x$ is away from $\mu$ (measured by $\sigma$ as a unit)
+
+```{r, out.width="75%"}
+a=0
+b=1
+par(mar=c(3,5,3,0.1)+.1)
+curve(dnorm(x, mean = 0, sd = 0.5), 
+      from = -11, to = 11.5, 
+      n = 100000, 
+      col = "darkblue", 
+      lwd = 2, 
+      yaxt = "n",
+      xlab="",
+      ylab = 'pdf', cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+curve(dnorm(x, mean = 0, sd = 1), 
+      from = -10, to = 10, 
+      n = 100000, 
+      col = "red", 
+      lwd = 2, 
+      yaxt = "n",
+      add= T,
+      ylab = 'pdf', cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+curve(dnorm(x, mean = 0, sd = 3), 
+      from = -10, to = 10, 
+      n = 100000, 
+      col = "green", 
+      lwd = 2, 
+      yaxt = "n",
+      add= T,
+      ylab = 'pdf', cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+curve(dnorm(x, mean = 5, sd = 1), 
+      from = -10, to = 10, 
+      n = 100000, 
+      col = "darkgreen", 
+      lwd = 2, 
+      yaxt = "n",
+      add= T,
+      ylab = 'pdf', cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+curve(dnorm(x, mean = -5, sd = 1), 
+      from = -10, to = 10, 
+      n = 100000, 
+      col = "gold", 
+      lwd = 2, 
+      yaxt = "n",
+      add= T,
+      ylab = 'pdf', cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
+
+labels <- c(expression(paste(mu, "=0, ", sigma, "=0.5")), expression(paste(mu, "=0, ", sigma, "=1")), expression(paste(mu, "=0, ", sigma, "=3")), expression(paste(mu, "=5, ", sigma, "=1")), expression(paste(mu, "=-5, ", sigma, "=1")))
+
+legend("topright",  title="Gaussians",
+  labels, lwd=2, lty=c(1, 1, 1, 1, 1), col=c("darkblue", "red", "green", "darkgreen", "gold"
+                                             , cex=3, pt.cex = 3))
+```
+
+## Question 
+
+Calculate quickly: $$\int_{-\infty}^{\infty} e^{-\frac{1}{2}x^2}dx = ?$$ 
+
+\bigskip
+
+For $X\sim \normal{\mu}{\sigma}$, what is $P(X<\mu)=$?
+
+
+## Joint distribution
+
+- r.v. $\vv{X} = [X_1, X_2, \ldots, X_n]^T$ can be multidimensional (each $X_i$ is r.v.)
+  - essentially a *random vector*
+  
+  \bigskip 
+- Still satisfies the same requirements
+  $$\forall \vv{x}, 0<P(\vv{X}=\vv{x}) <1,\; \sum_{x_1}\sum_{x_2}\ldots\sum_{x_n} P(\vv{X} =[x_1, x_2, \ldots, x_n]) =1$$
+or $$\forall \vv{x}, p(\vv{X}=\vv{x}) >0,\; \int\int\ldots\int p(\vv{X} =\vv{x})d{x_1}d{x_2\ldots dx_{n}} =1$$
+  \bigskip 
+- for bivariate case, i.e. $n=2$, $X_1, X_2$ are **independent** if $P(\vv{X}) = P(X_1)P(X_2)$ (e.g. rolling two dice independently)
+
+## Example: discrete joint distribution
+
+The joint distribution of $X$ snow or not, $Y\in$ \{\text{spring}, \text{summer}, \text{autumn}, \text{winter}\} represents the season that $x$ belongs to :
+\bigskip 
+\begin{table}\centering
+\begin{tabular}{ l | c | c | c | c}
+   \centering                    
+   & $y=\text{Spring}$ & $y=\text{Summer}$ &$y=\text{Autumn}$ & $y=\text{winter}$\\ 
+   \hline
+  $x= F$ & `r 1/4* 0.2` & `r 1/4* 1` & `r 1/4* 0.3`& `r 1/4* 0`\\
+	\hline 
+  $x= T$ & `r 1/4* 0.8` & `r 1/4* 0` & `r 1/4* 0.7`& `r 1/4* 1`\\ 
+\end{tabular}
+\end{table}
+\bigskip 
+It is easy to verify that    
+\[\sum_x\sum_y p(x, y) = 1\]
+   
+## Example: continuous joint distribution
+
+
+If $X,Y$'s joint p.d.f is 
+$$p(x,y) = \frac{1}{2\pi\sigma_x\sigma_y} e^{-\frac{1}{2}[(\frac{x-\mu_x}{\sigma_x})^2 +(\frac{y-\mu_y}{\sigma_y})^2] }$$
+
+$X,Y$ are bivariate Gaussian distributed (X,Y are *independent*). 
+
+
+
+## Probability rules 
+
+There are only two probability rules (use integration instead of sum for continuous r.v.):
+\begin{enumerate}
+	\item Product rule: \[ p(x, y) = p (y|x)p(x) = p(x|y)p(y)\]
+	\item Sum rule (marginalisation): \[ p (x) = \sum_y p(x, y),\; p(y) = \sum_x p(x, y)\]
+\end{enumerate}
+
+
+
+
+## Conditional probability
+
+Conditional probability (distribution) by product rule: \[p (x| y) = \frac{p(x, y)}{p(y)}\]
+  
+  - probability distribution of $x$ conditional on the value of $y$
+  
+  \bigskip
+  
+\begin{table}\centering
+\begin{tabular}{ l | c | c | c | c}
+   \centering                    
+   & $y=\text{Spring}$ & $y=\text{Summer}$ &$y=\text{Autumn}$ & $y=\text{winter}$\\ 
+   \hline
+  $x= F$ & `r 1/4* 0.2` & `r 1/4* 1` & `r 1/4* 0.3`& `r 1/4* 0`\\
+	\hline 
+  $x= T$ & `r 1/4* 0.8` & `r 1/4* 0` & `r 1/4* 0.7`& `r 1/4* 1`\\ 
+\end{tabular}
+\end{table}  
+
+\bigskip
+- $P(Y= \text{Spring})$ ? use sum rule
+  $P(Y = \text{Spring}) = \sum_{x=\{T,F\}} P(X=T,Y=\text{Spring}) =0.05+0.2=0.25$
+  
+- $P(X=T | Y= \text{Spring})$ ?
+  $P(x=T | y = \text{Spring}) = \frac{P(x=T, y=\text{Spring})}{P(y=\text{Spring})}=\frac{0.05}{0.25}=`r 0.05/0.25`$
+<!-- The total probability rule also implies marginalization rule:\[ p (x) = \sum_y p(x, y) \] -->
+
+<!-- Baye's theorem is then just a combination of the above three rules: \[ p (x| y) = \frac{p(y|x) p(x)}{\sum_x p(y|x) p(x)}\] -->
+
+
+## Expectation and variance
+
+**Expection** of a r.v. is defined as 
+$$E[X] = \sum_x x P(x) \text{ or } E[X] = \int x P(x)dx$$ 
+
+**Variance** of a r.v. is defined as
+
+$$var[X] = \sum_x x P(x) \text{ or } E[X] = \int x P(x)dx$$ 
+
+
+## Reference
+<!-- # ```{r, test-rgl, webgl=TRUE} -->
+<!-- # # x <- sort(rnorm(1000)) -->
+<!-- # # y <- rnorm(1000) -->
+<!-- # # z <- rnorm(1000) + atan2(x,y) -->
+<!-- # # plot3d(x, y, z, col = rainbow(1000)) -->
+<!-- #  vec <- rbind(diag(3), c(1,1,1)) -->
+<!-- #  rownames(vec) <- c("X", "Y", "Z", "J") -->
+<!-- #  open3d() -->
+<!-- #  vectors3d(vec, color=c(rep("black",3), "red"), lwd=2) -->
+<!-- #  # draw the XZ plane, whose equation is Y=0 -->
+<!-- #  planes3d(0, 0, 1, 0, col="gray", alpha=0.2) -->
+<!-- #  vectors3d(c(1,1,0), col="green", lwd=2) -->
+<!-- # # use options(rgl.printRglwidget = TRUE) to print results -->
+<!-- # ``` -->
 
 <!-- A vector is $$\vv{x} $$ -->
 <!-- ## R Markdown -->

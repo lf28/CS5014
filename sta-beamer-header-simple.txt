@@ -1,4 +1,5 @@
 %\usepackage[latin1]{inputenc}
+
 \usepackage{graphicx}
 \usepackage{rotating}
 %\setbeamertemplate{caption}[numbered]
@@ -9,7 +10,9 @@
 \usepackage{wasysym}
 \usepackage{amsmath}
 \usepackage{mathtools}
-
+\usepackage[skins,theorems]{tcolorbox}
+\tcbset{highlight math style={enhanced,
+  colframe=red,colback=white,arc=0pt,boxrule=1pt}}
 
 \newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
 \newcommand{\Gaussian}[3]{\ensuremath{\frac{1}{\sqrt{2\pi}#3}
@@ -30,6 +33,13 @@
 \newcommand{\vct}{\text{vec}}
 \newcommand{\NN}{\mathcal{NN}}
 \newcommand{\tr}{\text{tr}}
+
+
+
+\newcommand{\E}[1]{\ensuremath{\mathbb{E}[#1]}}
+\newcommand{\Var}[1]{\mathrm{Var}[#1]}
+\newcommand{\Cov}[2]{\mathrm{Cov}[#1,#2]}
+\newcommand{\Cor}[2]{\mathrm{Cor}[#1,#2]}
 
 
 \setbeamertemplate{navigation symbols}{}
