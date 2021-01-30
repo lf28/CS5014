@@ -1,17 +1,19 @@
 ---
-title: CS5014 Machine Learning  
+title: CS5014 Machine Learning
 subtitle: Lecture 2 Maths background review 
 author: "Lei Fang"
-date: 28 Jan 2021
+date: Spring 2021
 output: 
   beamer_presentation:
     keep_tex: true
 #    toc: true
 #    slide_level: 3
     includes:
-      in_header: sta-beamer-header-simple.txt
+      in_header: 
+        - sta-beamer-header-simple.tex
+        - l2.tex
+        # - title-page.tex
 #      after_body: ~/Dropbox/teaching/table-of-contents.txt
-
 bibliography: "ref.bib"
 ---
 
@@ -37,7 +39,7 @@ library(reticulate)
 Maths is useful 
 
 - rigorous and concise way of communicating results 
-- help us understand why *and* why not algorithms work
+- help us understand why *and* why not models work
 - be able to derive your own model and algorithms!
   
 \pause 
@@ -46,11 +48,11 @@ Maths is useful
 Refresher on essential concepts
 
 - only a refresher; we expect you have learnt them
-  - don't expect to know everything after this lecture
+  - don't expect to know everything after this
 - not complete and not rigorous 
 
 \pause
-\bigskip Self-assessment for yourself
+\bigskip A chance for self-assessment 
   
 - identify rusty area
 - do self studies afterwards
@@ -60,8 +62,8 @@ Refresher on essential concepts
 
 Linear algebra
 
-- leap forward from elementary algebra: 1-d to multi-dimensional
-- number line to a number plane (space)
+- leap forward from 1-d to $N$-dimensional
+- number line axis to a plane and hyper-space
 <!-- e.g. $a + b = c$  -->
 <!--   - $a,b,c$are scalars: $1+2 = 3$ -->
 <!--   - $a,b,c$are vectors: $\begin{bmatrix} -->
@@ -75,20 +77,23 @@ Linear algebra
 <!--            3  -->
 <!--          \end{bmatrix}$ -->
 
-\pause
+
+
+\bigskip Calculus 
+
+- continuous (real-valued) functions by approximation, (say *polynomial*)
+  - $y= sin(x)$ is approximated by $y=x$ when $x \approx 0$ 
+- useful for optimisation 
+
+
+
+
 \bigskip Probability theory and statistics 
 
 - study of uncertainty: uncertainty is the norm
   - e.g. rain tomorrow? blood pressure measurement (reading error)? 
 - how to generalise your results 
-  - from one sample to the universe: vaccine trial
-
-\pause 
-\bigskip Calculus 
-
-- study of continuous (real-valued) functions (using approximation, say *polynomial*)
-  - $y= sin(x)$ is well approximated by $y=x$ when $x \approx 0$ 
-- useful when we do optimisation 
+  - from one sample to the universe: training error $\rightarrow$ testing?
 
 
 
@@ -119,19 +124,17 @@ Linear algebra
   - [Appendix of Bayesian Reasoning and Machine Learning by David Barber http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/200620.pdf ](http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/200620.pdf)
   
 # Linear Algebra
-## Linear algebra: Basic concepts
+## Linear algebra: basic concepts
 
 - vectors
 \bigskip
-- norms and distances
+- norms and projection
 \bigskip
 - linear independence, span, subspace
 \bigskip
 - matrices, linear transformation
 \bigskip
-- matrix operations
-\bigskip
-- rank
+- rank, determinant, trace 
 
 
 ## Vector 
@@ -187,7 +190,9 @@ vectors(a, labels="a", pos.lab=4, cex.lab = 3)
 #vectors(a+b, labels="b", pos.lab=4, frac.lab=.5, origin=a, col="green")
 
 ```
----
+
+##
+\bigskip
 
 Some 3-d vectors  $\vv{c} = \begin{bmatrix}
            2 \\
@@ -203,7 +208,7 @@ Some 3-d vectors  $\vv{c} = \begin{bmatrix}
            1
          \end{bmatrix}$ 
 \bigskip   
-```{r, out.width="60%"}
+```{r, out.width="55%"}
 library("plot3D")
 x0 <- c(0,0,0)
 y0 <- c(0,0,0)
@@ -243,10 +248,10 @@ $$\vv{a}+\vv{b} = \begin{bmatrix}
            a_d+b_d
          \end{bmatrix}$$
          
-  - generalisation from scalar arithmetics; remember 2+1 on a number axis ? 
+  - generalisation from scalar addition; remember 2+1 on a number axis ? 
   - parallelogram rule
 \bigskip
-```{r, out.width="55%"}
+```{r, out.width="50%"}
 #setting up the plot
 
 xlim <- c(-0.1,3.5)
@@ -288,9 +293,9 @@ $$k\cdot \vv{a} = k \cdot \begin{bmatrix}
      
   - geometrically, scaling means shrinking or streching a vector 
     - the direction does not change but length changes
-  - and obviously $n\cdot \vv{a} = \vv{a}+\ldots+ \vv{a}=\sum_n \vv{a}$
+  - arithmetically, $n\cdot \vv{a} = \vv{a}+\ldots+ \vv{a}=\sum_n \vv{a}$
   - $0\cdot \vv{a} = \vv{0}$
-```{r, out.width="60%"}
+```{r, out.width="45%"}
 #setting up the plot
 
 xlim <- c(0,8)
@@ -327,15 +332,16 @@ $$\vv{a}^T \vv{b} = [a_1, a_2\ldots, a_d] \cdot \begin{bmatrix}
   - $\vv{a}^T \vv{a} = \sum_{i=1}^d a_i^2$ is squared Euclidean distance between $\vv{a}$ and $\vv{0}$
   - $\vv{a}^T \vv{a} \geq 0$ and $\vv{a}=\vv{0}$ if and only if $\vv{a}^T\vv{a} =0$ 
 
----
+## Inner product and projection
+
 Another interpretation: $$\vv{a}^T \vv{b} = \|\vv{a}\| \|\vv{b}\|cos \theta$$
-```{r, out.width="50%"}
+```{r, out.width="45%"}
 a <- c(3,1)
 b <- c(1,3)
 sum <- a+b
 
 xlim <- c(0,4)
-ylim <- c(0,4)
+ylim <- c(0,3.5)
 # proper geometry requires asp=1
 plot( xlim, ylim, type="n",  asp = 1, xlab="", ylab="", cex.lab=2.5, cex.axis=2.5, cex.main=2.5, cex.sub=2.5)
 # abline(v=0, h=0, col="gray")
@@ -356,11 +362,10 @@ text(0.6, 0.6, labels = expression(theta), cex=2)
 
   - $\theta$ is the angle between $\vv{a}, \vv{b}$
     - $\vv{a}^T\vv{b}=0$ if and only if $\vv{a} \perp \vv{b}$
-  - $\|\vv{a}\|cos \theta$ is the projected length of $\vv{a}$ on $\vv{b}$
-  - $\|\vv{b}\|cos \theta$ is the projected length of $\vv{b}$ on $\vv{a}$
+  <!-- - $\|\vv{a}\|cos \theta$ is the projected length of $\vv{a}$ on $\vv{b}$ -->
+  - $\|\vv{b}\|cos \theta = \|P(\vv{b}, \vv{a})\|$ is the projected length of $\vv{b}$ on $\vv{a}$
   - $P(\vv{b}, \vv{a})$ denotes the projected vector of $\vv{b}$ to $\vv{a}$
-    - so  $\|\vv{b}\|cos \theta = \|P(\vv{b}, \vv{a})\|$ 
-  - and (prove it or convince yourself!) $$P(\vv{b}, \vv{a}) = \|\vv{b}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{b}}{\vv{a}^T\vv{a}}  \vv{a}$$
+   $$P(\vv{b}, \vv{a}) = \|\vv{b}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{b}}{\vv{a}^T\vv{a}}  \vv{a}$$
 
 
 ## Matrix
@@ -396,7 +401,7 @@ a_{m1} & a_{m2} & \ldots & a_{mn}
   - $\vv{AB} \neq \vv{BA}$
   - $(\vv{AB})^T = \vv{B}^T \vv{A}^T$
   - $\vv{I}$ identity matrix: $\vv{I}\vv{A} = \vv{A}$ or $\vv{AI}=\vv{A}$
-- inverse (only applies to square matrix): $\vv{A}^{-1} \vv{A}= \vv{AA}^{-1} =\vv{I}$
+- inverse (only square matrix): $\vv{A}^{-1} \vv{A}= \vv{AA}^{-1} =\vv{I}$
 
 ## Examples 
 
@@ -434,9 +439,9 @@ $$
 
 $$
 `r write_matex2(A)` \times `r write_matex2(B)`  =  \begin{bmatrix} \tcbhighmath[boxrule=2pt,arc=1pt,colback=blue!10!white,colframe=blue,
-  drop fuzzy shadow=red]{ 2\times 5+3\times 1 }& c_{12}\\
-c_{21}& c_{22}\\
-c_{31}& c_{32}
+  drop fuzzy shadow=red]{ 2\times 5+3\times 1 }& c_{12} & c_{13}\\
+c_{21}& c_{22} & c_{23}\\
+c_{31}& c_{32} & c_{33}
 \end{bmatrix}
 $$
 $$
@@ -448,14 +453,23 @@ $$
 $$
 
 ## Example
+The inverse of $\vv{I} = \begin{bmatrix} 1 &0 \\ 0 & 1 \end{bmatrix}$ is itself $\vv{I}^{-1} =\vv{I}$
 
+\bigskip
 The inverse of $\vv{A} = \begin{bmatrix} 3& 0 \\ 0 & 5\end{bmatrix}$ is $\vv{A}^{-1} = \begin{bmatrix} 1/3& 0 \\ 0 & 1/5\end{bmatrix}$ as $\vv{AA}^{-1} = \vv{I}$
 
 \bigskip
-The inverse of $\vv{I}$ is itself $\vv{I}^{-1} =\vv{I}$
+
+
+```{r}
+mm <- matrix(c(1,1,1,2,2,1,0,1,0), ncol=3)
+mminverse <- solve(mm)
+```
+
+The inverse of $\vv{B} = `r write_matex2(mm)`$ is $\vv{B}^{-1}=`r write_matex2(mminverse)`$
 \bigskip
 
-
+$\vv{C} = `r write_matex2(matrix(c(2,1,0,0,1,0,1,1,0), byrow=F, ncol=3))`$ is not invertible: $\vv{C}^{-1}$ does not exist 
 
 ## Span, linear independence
 
@@ -464,17 +478,19 @@ The inverse of $\vv{I}$ is itself $\vv{I}^{-1} =\vv{I}$
   - $\vv{a}_{i}$ are vectors (of the same length) and $\lambda_i$ are the scalars 
   
   
-- **span** is the set of all possible linear combination $$\text{Span}( \{\vv{a}_{1}, \vv{a}_2, \ldots,\vv{a}_n\}) = \left\{\sum_{i=1}^n \lambda_i \vv{a}_i | \lambda_i \in R, i= 1,\ldots,n\right \}$$
+- **span** is the set of all possible linear combination $$\text{span}( \{\vv{a}_{1}, \vv{a}_2, \ldots,\vv{a}_n\}) = \left\{\sum_{i=1}^n \lambda_i \vv{a}_i | \lambda_i \in R, i= 1,\ldots,n\right \}$$
   - what is the span of $\{[1,0]^T, [0,1]^T\}$? 
-  - how about $\{[2,1]^T, [0,1]^T\}$? 
-  - how about $\{[2,1]^T, [4,2]^T\}$?
-  - how about $\{[2,1,0]^T, [0,1,0]^T\}$?
-    - it is a **subspace** (bottom plane) in $R^3$
+  - how about $\text{span}( \{[2,1]^T, [0,1]^T\})$? 
+  - how about $\text{span}( \{[2,1]^T, [4,2]^T\})$?
+  - how about $\text{span}(\{[2,1,0]^T, [0,1,0]^T\})$?
+    - it is a **subspace** ($xy$ plane) in $R^3$
     
 
 ##
 
-```{r, out.width="60%"}
+$$\vv{a}_1 =[2,1,0]^T, \vv{a}_2=[0,1,0]^T$$ the span is the $xy$ plane, and it is a subspace (*check the definition of subspace!*)
+
+```{r, out.width="50%"}
 x0 <- c(0,0)
 y0 <- c(0,0)
 z0 <- c(0,0)
@@ -496,14 +512,18 @@ text3D(x1, y1, z1, c("a1", "a2"),
 
 ## 
 
-- **linear independence**: $\{\vv{a}_1, \ldots, \vv{a}_n\}$ is linear independent if there exist no $\lambda_1, \ldots, \lambda_n$ (except all being 0) such that $$\lambda_1\cdot \vv{a}_1 + \lambda_2 \cdot \vv{a}_2+\ldots + \lambda_n\vv{a}_n=\vv{0}$$
+- **linear independence**: $\{\vv{a}_1, \ldots, \vv{a}_n\}$ are linear independent if there exist no $\lambda_1, \ldots, \lambda_n$ (except all being 0) such that $$\lambda_1\cdot \vv{a}_1 + \lambda_2 \cdot \vv{a}_2+\ldots + \lambda_n\vv{a}_n=\vv{0}$$
 
   - how about $\{[2,3]^T, [4,6]^T\}$ ?
   - are $\{[1,0]^T, [0,1]^T\}$ LI?
   - essentially a way to tell whether there is any *redundant* vectors in the set
   
   
-- **rank** of a matrix is defined as the maximum number of linearly independent column vectors 
+- **rank** of $\vv{A} = [\vv{a}_1, \ldots, \vv{a}_n]$: the maximum number of linearly independent column vectors 
+  - the span of the column vectors is called *column space*
+  - *rank* also called the *dimension* of the column space 
+  - *dimension*: the minimum $\#$ of the vectors needed to span a space
+    - what is the *dimension* for $R^3$?
 
 
 ## Example
@@ -561,15 +581,14 @@ x_{n}
 
 ## Matrix vector multiplication (some interpretations)
 
-So $\vv{A}\vv{x}$ is a linear transformation: $\vv{x} \rightarrow \vv{y}$
-
+So $\vv{A}\vv{x}$ is a linear transformation: $R^n\rightarrow R^m$
 
 ```{r}
 angle = pi/4
 R = matrix(c(cos(angle), -1*sin(angle), sin(angle), cos(angle)), byrow = T, nrow = 2)
 ```
 
-- Rotation: rotate $\vv{x}$ anti-clockwise by $\theta$
+- rotation: rotate $\vv{x}$ anti-clockwise by $\theta$
   $$R\vv{x} = \begin{bmatrix} cos\theta & -sin\theta \\
   sin\theta & cos\theta\end{bmatrix} \begin{bmatrix} x_1\\ x_2\end{bmatrix} = `r write_matex2(R)` \begin{bmatrix} x_1\\ x_2\end{bmatrix}$$ say $\theta = \pi/4$
 
@@ -590,26 +609,195 @@ vectors(a, labels="a", pos.lab=4, cex.lab = 3, col="red")
 vectors(aprime, labels="Ra", pos.lab=4, cex.lab = 3)
 vectors(aprimep, labels="RRa", pos.lab=4, cex.lab = 3)
 ```
-  - $\vv{R}$ is a rotation or orthogonal matrix if $\vv{R}^T = \vv{R}^{-1}$ (what does it imply?)
-  - $\vv{R}^T\vv{R} = \vv{R}\vv{R}^T =\vv{I}$
-  \pause 
-    - preserves length $(\vv{R}\vv{x})^T(\vv{R}\vv{x}) = \vv{x}^T\vv{R}^T\vv{R}\vv{x} = \vv{x}^T\vv{x}$
-
-
 
 ##
 
-- Projection (an example): project $\vv{x}$ to $\vv{a}$ \begin{align*}P(\vv{x}, \vv{a}) &= \|\vv{x}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{x}}{\vv{a}^T\vv{a}}  \vv{a} \\
-&= \frac{\vv{a}\cdot \vv{a}^T\vv{x}}{\vv{a}^T\vv{a}} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\vv{x}\end{align*}
-  - $\vv{P} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}$ is a projection matrix (what is the shape of $\vv{P}$?); 
-  - it transforms $\vv{x}$ to its projection 
-  - what if we project it again (and again and again ...) ? i.e. $\vv{P}(\vv{P}\vv{x})$
+  - $\vv{R}$ is a rotation (orthogonal) matrix if $\vv{R}^T = \vv{R}^{-1}$ (what does it imply?)
+  - $\vv{R}^T\vv{R} = \vv{R}\vv{R}^T =\vv{I}$
   \pause 
-    - it remains unchanged, $\vv{PP}\vv{x} = \vv{P}\vv{x}$
+    - preserves length $(\vv{R}\vv{x})^T(\vv{R}\vv{x}) = \vv{x}^T\vv{R}^T\vv{R}\vv{x} = \vv{x}^T\vv{x}$
+  - rotation transform is alwasy invertible: inverse means rotating back!
+  - mathematics is always so reasonable :-)
+
+##
+
+Projection: project $\vv{x}\in R^n$ to $\vv{a}\in R^n$ \begin{align*}P(\vv{x}, \vv{a}) &= \|\vv{x}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{x}}{\vv{a}^T\vv{a}}  \vv{a} \\
+&= \frac{\vv{a}\cdot \vv{a}^T\vv{x}}{\vv{a}^T\vv{a}} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\vv{x}=\vv{Px}\end{align*}
+
+$$\vv{P} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}$$
+  
+  - $\vv{P}$ is $n$ by $n$ square matrix
+  - $\vv{P}$ is a projection matrix: $\vv{Px}$ returns the projection
+  - what if we project it again (and again ...) ? $\vv{P}\ldots\vv{P}\vv{P}\vv{x}$
+  \pause 
+    - it remains unchanged, $\vv{P}\ldots\vv{P}\vv{P}\vv{x} = \vv{P}\vv{x}$
     - or $\vv{P}\vv{P} = \vv{P}$
    $$\frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}= \frac{\vv{aa}^T\vv{aa}^T}{(\vv{a}^T\vv{a})^2}= \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}$$
-    - mathematics is the subject of making sense :-)
+  - some projection cannot be reversed: some $\vv{P}$ is not invertible !
+  - mathematics always makes sense :-)
+  
+  
+\section{Calculus}
+\only<article>{Our revision on calculus will be brief. We will only review the concept of partial derivative, gradient, and hessian matrix. You should try to convince yourself all the results listed here if you can.}
 
+## Calculus
+
+- univariate derivative
+\bigskip
+
+- partial derivative 
+\bigskip
+
+- gradient
+
+\bigskip
+
+- hessian matrix
+
+\bigskip
+
+- quadratic form and its derivative
+
+\bigskip
+
+- Lagrange multiplier
+
+
+
+## Derivative 
+
+Given function $f(x): R\rightarrow R$, the derivative is defined as
+
+$$\frac{df}{dx} \equiv Df(x) \equiv \lim_{\Delta x \rightarrow 0} \frac{f(x+\Delta x) - f(x)}{\Delta x} $$
+
+- the growth rate at or near $x$
+- the derivative points in the direction of steepest ascent of f
+- when $Df(x) =0$, $f$ doesn't grow or decline near $x$, or *stationary*
+  - either maximum (negative second derivative) or minimum (positive second derivative)
+  - saddle point
+  - for optimisation, just find $Df(x) = 0$
+
+
+## Example
+
+$f(x) = -x^2$ what are the derivatives at -2 and 2?
+
+- $Df(x)  = -2x$; 
+- at $x=-2$, $Df(-2)=4 >0$ points to the right (ascent direction)
+- at $x=2$, $Df(2) =-4 <0$ points to the left (ascent direction)
+- at $x=0$, $Df(0) = 0$, it's maximum as $D^2f(0) =-2<0$ 
+\bigskip
+
+```{r, out.width= "60%"}
+par(mar=c(3,3,3,0.1)+.1)
+curve(-x^2, -5, 5, ylab = "f", ylim= c(-25, 5), cex.lab=2, cex.axis=2, cex.main=2, cex.sub=2)
+curve(-4*x+4, -2, 5, add=T, col="red")
+curve(4*x+4, -5, 2, add=T, col="red")
+points(-2, y = -4, type = "p", pch=16)
+points(2, y = -4, type = "p", pch=16)
+text(-2.2, -2, expression(paste( "Df(-2) = 4")), cex = 3)
+text(2.8, -2, expression(paste( "Df(2) = -4")), cex=3)
+```
+
+
+## Partial derivative and gradient
+
+Given function $f(\vv{x}): R^n\rightarrow R$, partial derivative w.r.t. $x_i$ is
+
+$$\frac{\partial f}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(x_1, \ldots, x_i+h, \ldots, x_n) - f(x_1, \ldots, x_i, \ldots, x_n)}{h} $$
+
+The vector 
+
+$$\nabla_{\vv{x}}f=\text{grad} f = \frac{df}{d\vv{x}} = \left [\frac{\partial f(\vv{x})}{\partial x_1}, \frac{f(\vv{x})}{\partial x_2}, \ldots, \frac{f(\vv{x})}{\partial x_n}\right ]$$
+
+- partial derivative measure the growth rate at axis aligned directions 
+- similarly, the gradient points to the greatest ascent direction 
+
+
+## Example 
+
+Find the gradient of $f(\vv{x}) = f(x_1, x_2) = x_1^2 +x_2^2$
+
+$$\nabla_{\vv{x}}f = \left [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}\right ] = [2x_1, 2x_2]$$
+
+- gradient is a vector field: at any input point $[x_1, x_2]$, it gives a direction vector $[2x_1, 2x_2]$
+
+```{r, out.width="60%"}
+M <- mesh(seq(-10, 10, by=0.1),seq(-10, 10, by = 0.1))
+z = M$x ^2 + M$y^2
+surf3D(x=M$x, y=M$y, z= z, colkey = TRUE, 
+       box = TRUE, bty = "b", phi = 20, theta = 120, colvar = z, xlab="x1", ylab="x2", zlab="f")
+```
+
+##
+
+- at $\vv{x} = [1,1]$, the gradient vector is $[2,2]$, pointing to steepest ascent direction 
+- at $\vv{x} = [1,0]$, the gradient vector is $[2,0]$
+- at $\vv{x} = [0,0]$, the gradient vanishes
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width = 0.6\textwidth]{./gradvecfield.eps}
+ % \caption{Awesome figure}
+\end{figure}
+
+```{r}
+library(pracma)
+```
+
+## Quadratic form $x^TAx$
+
+Another view: $f(\vv{x}) = x_1^2 +x_2^2= \vv{x}^T \vv{A} \vv{x}$, where $\vv{A}$ is $\vv{I}$ (*verify this!*)
+
+  - $\vv{x}^T\vv{Ax}$ is called quadratic form
+  - generalisation of quadratic function $f(x) = ax^2 = xax$
+  - the gradient is $\nabla_{\vv{x}} f = 2\vv{A}\vv{x}$ (when $A$ is symmetric)
+  - the hessian matrix is $\nabla_{\vv{x}}^2 f = 2\vv{A}$
+    - $f$ has a maximum if $\vv{A}$ is negative definite ($a$ is negative) 
+    - $f$ has a minimum if $\vv{A}$ is positive definite ($a$ is positive)
+  - positive definite (P.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} >0$ for all $x\in R^m$
+    - $\vv{I}$ is P.D., why ?
+    - $f$ has a minimum 
+  - negative definite (N.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} <0$ for all $x\in R^m$
+
+    
+    
+## Example: connecting the dots
+
+*Given a bunch of numbers $\vv{x} = [3, 4, 3.5, 5, 6, 5.5]$, to summarise the data set, sample mean $$\mu(\vv{x}) = \frac{1}{N} \sum_{i=1}^N {x_i}$$ is often used; why ? *
+
+##
+
+- $(\mu -x_i)^2$ meansures the distance between $x_i$ and $\mu$
+- $\sum_{i=1}^{N} (\mu -x_i)^2$ measures the total distance or cost
+- note that $\mu\begin{bmatrix}1\\ \vdots \\1 \end{bmatrix} - \begin{bmatrix}x_1 \\\vdots \\x_n\end{bmatrix} = \begin{bmatrix}\mu-x_1 \\\vdots \\\mu-x_n\end{bmatrix} \equiv \vv{e}$
+\begin{align*} 
+\text{Let } f(\mu) &= \sum_{i=1}^{N} (\mu -x_i)^2 = (\mu \vv{1}- \vv{x})^{T}(\mu \vv{1}- \vv{x})= \vv{e}^T\vv{e} = \vv{e}^T\vv{I}\vv{e} \\
+\frac{df}{d\mu} &=  \underbrace{\frac{\partial f}{\partial \vv{e}}\frac{d\vv{e}}{d\mu}}_{\text{chain rule}}= 2\vv{e}^T\vv{1} = 2(\mu\vv{1} - \vv{x})^T \vv{1}
+\end{align*}
+
+\bigskip
+
+set the derivative to 0
+\begin{align*} 
+\mu\vv{1}^T\vv{1} -\vv{x}^T \vv{1}= 0 \Rightarrow  \mu = \frac{\vv{1}^T\vv{x}}{\vv{1}^T\vv{1}} = \frac{\sum_{i}^N x_i}{N}
+\end{align*}
+
+- can you tell it is actually a projection ?
+
+##
+
+- note that the projection of $\vv{x}$  on $\vv{1}$ is $$P(\vv{x}, \vv{1}) = \frac{\vv{1}^T\vv{x}}{\vv{1}^T\vv{1}} \vv{1} = \mu \vv{1}$$
+
+- this is a ML model actually (specific case) 
+- for this simple example, we have used 
+  - linear algebra
+  - vector calculus
+- how about probability theory ?
+  
+  
+  
 # Probability theory
   
 ## Probability theory
@@ -657,16 +845,21 @@ If r.v. $X$'s target space $\mathcal{T}$ is discrete
 ## Example - discrete r.v.
   
   **Bernoulli distribution**
-  Tossing a coin, $\mathcal{T} = {H, T}$, $$P(X=H) = p , P(X=T) = 1-p, 0\leq p\leq 1$$
+  Tossing a coin , $\mathcal{T} = {1, 0}$ (1 is $H$, 0 is $T$), $$P(X=1) = p , P(X=0) = 1-p, 0\leq p\leq 1$$
   
   **Binomial distribution**
-  Tossing a coin $N$ times, the r.v. $X$ that the number of head shows up is 
-  $$P(X=k) = \binom{N}{k} \cdot p^k(1-p)^{N-k}$$ (convince yourself why)
+  Tossing a coin $N$ times, the r.v. $X$ is the number of head shows up
+  $$P(X=k) = \binom{N}{k} \cdot p^k(1-p)^{N-k}$$ 
   
+  - what's the relationship between Binomial and Bernoulli?
+    
+    \bigskip
+    
   **Multinoulli distribution**
   Throw a fair 6-facet die, $\mathcal{T} = {1, 2,\ldots, 6}$, the distribution is 
   $$P(X=i) = 1/6$$  
-  Verify the above $P$s satisfy the requirements of p.m.f.
+  
+  *Verify the above $P$s satisfy the conditions of p.m.f.*
   
   
 ## Random variable - continuous r.v.
@@ -714,7 +907,7 @@ $\mathcal{T} = R$, or $X \in R$ the pdf is
 $$p(x) = \normal{x; \mu}{\sigma^2}=\frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{1}{2}(\frac{x-\mu}{\sigma})^2}$$
  $(\frac{x-\mu}{\sigma})^2$ is a distance measure: how far $x$ is away from $\mu$ (measured by $\sigma$ as a unit)
 
-```{r, out.width="75%"}
+```{r, out.width="65%"}
 a=0
 b=1
 par(mar=c(3,5,3,0.1)+.1)
@@ -815,16 +1008,19 @@ It is easy to verify that
 If $X,Y$'s joint p.d.f is 
 $$p(x,y) = \frac{1}{2\pi\sigma_x\sigma_y} e^{-\frac{1}{2}[(\frac{x-\mu_x}{\sigma_x})^2 +(\frac{y-\mu_y}{\sigma_y})^2] }$$
 
-$X,Y$ are bivariate Gaussian distributed (X,Y are *independent*). 
+$X,Y$ are bivariate Gaussian distributed 
+
+\bigskip
+X,Y are *independent* for this case, why ? 
 
 
 
 ## Probability rules 
 
-There are only two probability rules (use integration instead of sum for continuous r.v.):
+There are only two probability rules (integration for continuous r.v.):
 \begin{enumerate}
-	\item Product rule: \[ p(x, y) = p (y|x)p(x) = p(x|y)p(y)\]
-	\item Sum rule (marginalisation): \[ p (x) = \sum_y p(x, y),\; p(y) = \sum_x p(x, y)\]
+	\item product rule: \[ p(x, y) = p (y|x)p(x) = p(x|y)p(y)\]
+	\item sum rule (marginalisation): \[ p (x) = \sum_y p(x, y),\; p(y) = \sum_x p(x, y)\]
 \end{enumerate}
 
 
@@ -832,7 +1028,7 @@ There are only two probability rules (use integration instead of sum for continu
 
 ## Conditional probability
 
-Conditional probability (distribution) by product rule: \[p (x| y) = \frac{p(x, y)}{p(y)}\]
+Conditional probability distribution (by product rule): \[p (x| y) = \frac{p(x, y)}{p(y)}\]
   
   - probability distribution of $x$ conditional on the value of $y$
   
@@ -854,60 +1050,71 @@ Conditional probability (distribution) by product rule: \[p (x| y) = \frac{p(x, 
   $P(Y = \text{Spring}) = \sum_{x=\{T,F\}} P(X=T,Y=\text{Spring}) =0.05+0.2=0.25$
   
 - $P(X=T | Y= \text{Spring})$ ?
-  $P(x=T | y = \text{Spring}) = \frac{P(x=T, y=\text{Spring})}{P(y=\text{Spring})}=\frac{0.05}{0.25}=`r 0.05/0.25`$
+  $P(x=T | y = \text{Spring}) = \frac{P(x=T, y=\text{Spring})}{P(y=\text{Spring})}=\frac{0.2}{0.25}=`r 0.2/0.25`$
 <!-- The total probability rule also implies marginalization rule:\[ p (x) = \sum_y p(x, y) \] -->
 
 <!-- Baye's theorem is then just a combination of the above three rules: \[ p (x| y) = \frac{p(y|x) p(x)}{\sum_x p(y|x) p(x)}\] -->
 
 
+
 ## Expectation and variance
 
 **Expection** of a r.v. is defined as 
-$$E[X] = \sum_x x P(x) \text{ or } E[X] = \int x P(x)dx$$ 
+$$\E{g(X)} = \sum_x g(x) P(x) \text{ or } \E{g(X)} = \int g(x) P(x)dx$$
+  
+- $\E{a} = a$, $a$ is a constant (not r.v.)
+- $\E{\E{X}} = \E{X}$
+- $\E{aX +bY}  = a\E{X} + b\E{Y}$: linearity
+
+\bigskip
 
 **Variance** of a r.v. is defined as
+$$\Var{g(X)} = \E{(g(X)-\E{g(X)})^2}$$ 
+  
+- $\Var{X} = \E{X^2} - \E{X}^2$
+- $\Var{aX} = a^2\Var{X}$
 
-$$var[X] = \sum_x x P(x) \text{ or } E[X] = \int x P(x)dx$$ 
+\bigskip
+
+*Prove them or convince yourself !*
+\only<article>{A very useful identity that links expectation and variance together is 
+\[\Var{x} = \E{x^2} - \E{x}^2 , \] which can be proved as follows:
+\[ \Var{x} = \E{x^2 -2\E{x} x + \E{x}^2} = \E{x^2} -2\E{x}^2 + \E{x}^2 = \E{x^2} - \E{x}^2; \]
+ the second equality holds because $\E{x}=\mu$  is a constant. Note that $\E{x^2}$ is called the \textit{second moment} of r.v. $x$.}
 
 
-## Reference
-<!-- # ```{r, test-rgl, webgl=TRUE} -->
-<!-- # # x <- sort(rnorm(1000)) -->
-<!-- # # y <- rnorm(1000) -->
-<!-- # # z <- rnorm(1000) + atan2(x,y) -->
-<!-- # # plot3d(x, y, z, col = rainbow(1000)) -->
-<!-- #  vec <- rbind(diag(3), c(1,1,1)) -->
-<!-- #  rownames(vec) <- c("X", "Y", "Z", "J") -->
-<!-- #  open3d() -->
-<!-- #  vectors3d(vec, color=c(rep("black",3), "red"), lwd=2) -->
-<!-- #  # draw the XZ plane, whose equation is Y=0 -->
-<!-- #  planes3d(0, 0, 1, 0, col="gray", alpha=0.2) -->
-<!-- #  vectors3d(c(1,1,0), col="green", lwd=2) -->
-<!-- # # use options(rgl.printRglwidget = TRUE) to print results -->
-<!-- # ``` -->
+## Example
 
-<!-- A vector is $$\vv{x} $$ -->
-<!-- ## R Markdown -->
+$X$ is a Bernoulli r.v. with parameter $p=0.5$; what is $\E{X}$?
 
-<!-- This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+- $\E{X} = 1\times P(X=1) + 0\times P(X=0) = p =0.5$;
 
-<!-- When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. -->
+\bigskip
 
-<!-- ## Slide with Bullets -->
+$Y$ is a Binomial r.v. with $N=10, p=0.5$, what is $\E{Y}$?
 
-<!-- - Bullet 1 -->
-<!-- - Bullet 2 -->
-<!-- - Bullet 3 -->
+- $Y= \sum_{i=1}^{N} X = N\times X$
+- $\E{Y} = \E{N\times X} = N\times \E{X} = N\times p = 5$
+- interpretation: you expect to see 5 successes out of 10 (on average the result is 5 if you repeat the experiment a lot of times)
 
-<!-- ## Slide with R Output -->
 
-<!-- ```{r cars, echo = TRUE} -->
-<!-- summary(cars) -->
-<!-- ``` -->
 
-<!-- ## Slide with Plot -->
 
-<!-- ```{r pressure} -->
-<!-- plot(pressure) -->
-<!-- ``` -->
 
+## General advice on reading maths
+
+\begin{tcolorbox}[colback=red!5!white]
+  {\large ``The fish trap exists because of the fish. Once you've gotten the fish you can forget the trap. The rabbit snare exists because of the rabbit. Once you've gotten the rabbit, you can forget the snare. Words exist because of meaning. Once you've gotten the meaning, you can forget the words. Where can I find a man who has forgotten words so I can talk with him?''}
+  \hspace*\fill{\small--- Zhuang Zhou}
+\end{tcolorbox}
+
+- maths intuition is more important than equations
+
+\bigskip
+
+- think first then verify your beliefs by reading (different) text books or code it up and check 
+
+\bigskip
+
+- stand higher and look at a greater picture
+  - accepting intermediate results without fully understanding is totally cool

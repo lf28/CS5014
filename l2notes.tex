@@ -1,12 +1,14 @@
 \PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 %
-\documentclass[ignorenonframetext,]{beamer}
+% \documentclass[ignorenonframetext,]{beamer}
+ \documentclass{scrartcl}
+ \usepackage{beamerarticle}
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
 \setbeamercolor{caption name}{fg=normal text.fg}
-\beamertemplatenavigationsymbolsempty
+% \beamertemplatenavigationsymbolsempty
 % Prevent slide breaks in the middle of a paragraph:
 \widowpenalties 1 10000
 \raggedbottom
@@ -74,9 +76,10 @@
 \urlstyle{same}  % don't use monospace font for urls
 \newif\ifbibliography
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{0}
+% \providecommand{\tightlist}{%
+%   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\def\tightlist{}
+% \setcounter{secnumdepth}{0}
 
 % set default figure placement to htbp
 \makeatletter
@@ -240,7 +243,7 @@
 
 \begin{document}
 \frame{\titlepage}
-
+\maketitle
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
 
@@ -693,9 +696,9 @@ a_{m1} & a_{m2} & \ldots & a_{mn}
 
 \[
 \begin{bmatrix}2&3 \\6&4 \\1&1 \\\end{bmatrix} \times \begin{bmatrix}5&2&2 \\1&1&2 \\\end{bmatrix}  =  \begin{bmatrix} \tcbhighmath[boxrule=2pt,arc=1pt,colback=blue!10!white,colframe=blue,
-  drop fuzzy shadow=red]{ 2\times 5+3\times 1 }& c_{12} & c_{13}\\
-c_{21}& c_{22} & c_{23}\\
-c_{31}& c_{32} & c_{33}
+  drop fuzzy shadow=red]{ 2\times 5+3\times 1 }& c_{12}\\
+c_{21}& c_{22}\\
+c_{31}& c_{32}
 \end{bmatrix}
 \] \[
 \begin{bmatrix}2&3 \\6&4 \\1&1 \\\end{bmatrix} \times \begin{bmatrix}5&2&2 \\1&1&2 \\\end{bmatrix}  =  \begin{bmatrix}13&7&10 \\34&16&20 \\6&3&4 \\\end{bmatrix}
@@ -750,18 +753,18 @@ invertible: \(\vv{C}^{-1}\) does not exist
   \end{itemize}
 \item
   \textbf{span} is the set of all possible linear combination
-  \[\text{span}( \{\vv{a}_{1}, \vv{a}_2, \ldots,\vv{a}_n\}) = \left\{\sum_{i=1}^n \lambda_i \vv{a}_i | \lambda_i \in R, i= 1,\ldots,n\right \}\]
+  \[\text{Span}( \{\vv{a}_{1}, \vv{a}_2, \ldots,\vv{a}_n\}) = \left\{\sum_{i=1}^n \lambda_i \vv{a}_i | \lambda_i \in R, i= 1,\ldots,n\right \}\]
 
   \begin{itemize}
   \tightlist
   \item
     what is the span of \(\{[1,0]^T, [0,1]^T\}\)?
   \item
-    how about \(\text{span}( \{[2,1]^T, [0,1]^T\})\)?
+    how about \(\text{Span}( \{[2,1]^T, [0,1]^T\})\)?
   \item
-    how about \(\text{span}( \{[2,1]^T, [4,2]^T\})\)?
+    how about \(\text{Span}( \{[2,1]^T, [4,2]^T\})\)?
   \item
-    how about \(\text{span}(\{[2,1,0]^T, [0,1,0]^T\})\)?
+    how about \(\text{Span}(\{[2,1,0]^T, [0,1,0]^T\})\)?
 
     \begin{itemize}
     \tightlist
@@ -788,7 +791,7 @@ plane, and it is a subspace (\emph{check the definition of subspace!})
 
 \begin{itemize}
 \item
-  \textbf{linear independence}: \(\{\vv{a}_1, \ldots, \vv{a}_n\}\) are
+  \textbf{linear independence}: \(\{\vv{a}_1, \ldots, \vv{a}_n\}\) is
   linear independent if there exist no \(\lambda_1, \ldots, \lambda_n\)
   (except all being 0) such that
   \[\lambda_1\cdot \vv{a}_1 + \lambda_2 \cdot \vv{a}_2+\ldots + \lambda_n\vv{a}_n=\vv{0}\]
@@ -949,9 +952,14 @@ So \(\vv{A}\vv{x}\) is a linear transformation: \(R^n\rightarrow R^m\)
 \begin{frame}{}
 \protect\hypertarget{section-5}{}
 
-Projection: project \(\vv{x}\in R^n\) to \(\vv{a}\in R^n\)
-\begin{align*}P(\vv{x}, \vv{a}) &= \|\vv{x}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{x}}{\vv{a}^T\vv{a}}  \vv{a} \\
-&= \frac{\vv{a}\cdot \vv{a}^T\vv{x}}{\vv{a}^T\vv{a}} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\vv{x}=\vv{Px}\end{align*}
+\begin{itemize}
+\tightlist
+\item
+  projection (an example): project \(\vv{x}\in R^n\) to
+  \(\vv{a}\in R^n\)
+  \begin{align*}P(\vv{x}, \vv{a}) &= \|\vv{x}\|cos \theta * \frac{\vv{a}}{\|\vv{a}\|} =  \frac{\vv{a}^T\vv{x}}{\vv{a}^T\vv{a}}  \vv{a} \\
+  &= \frac{\vv{a}\cdot \vv{a}^T\vv{x}}{\vv{a}^T\vv{a}} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\vv{x}=\vv{Px}\end{align*}
+\end{itemize}
 
 \[\vv{P} = \frac{\vv{a}\vv{a}^T}{\vv{a}^{T}\vv{a}}\]
 
@@ -1029,7 +1037,7 @@ Projection: project \(\vv{x}\in R^n\) to \(\vv{a}\in R^n\)
 
 Given function \(f(x): R\rightarrow R\), the derivative is defined as
 
-\[\frac{df}{dx} \equiv Df(x) \equiv \lim_{\Delta x \rightarrow 0} \frac{f(x+\Delta x) - f(x)}{\Delta x} \]
+\[\frac{df}{dx} \equiv Df(x) \equiv \lim_{\Delta x \rightarrow 0} \frac{f(x+\Delta x)}{\Delta x} \]
 
 \begin{itemize}
 \tightlist
@@ -1082,7 +1090,7 @@ Given function \(f(x): R\rightarrow R\), the derivative is defined as
 Given function \(f(\vv{x}): R^n\rightarrow R\), partial derivative
 w.r.t. \(x_i\) is
 
-\[\frac{\partial f}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(x_1, \ldots, x_i+h, \ldots, x_n) - f(x_1, \ldots, x_i, \ldots, x_n)}{h} \]
+\[\frac{\partial f}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(x_1, \ldots, x_i+h, \ldots, x_n)}{h} \]
 
 The vector
 
@@ -1130,16 +1138,12 @@ Find the gradient of \(f(\vv{x}) = f(x_1, x_2) = x_1^2 +x_2^2\)
   at \(\vv{x} = [0,0]\), the gradient vanishes
 \end{itemize}
 
-\begin{figure}
-    \centering
-    \includegraphics[width = 0.6\textwidth]{./gradvecfield.eps}
- % \caption{Awesome figure}
-\end{figure}
+\begin{center}\includegraphics[width=0.6\linewidth]{math4ml_files/figure-beamer/unnamed-chunk-13-1} \end{center}
 
 \end{frame}
 
-\begin{frame}{Quadratic form \(x^TAx\)}
-\protect\hypertarget{quadratic-form-xtax}{}
+\begin{frame}{Quadratic form \(xAx\)}
+\protect\hypertarget{quadratic-form-xax}{}
 
 Another view: \(f(\vv{x}) = x_1^2 +x_2^2= \vv{x}^T \vv{A} \vv{x}\),
 where \(\vv{A}\) is \(\vv{I}\) (\emph{verify this!})
@@ -1147,14 +1151,14 @@ where \(\vv{A}\) is \(\vv{I}\) (\emph{verify this!})
 \begin{itemize}
 \tightlist
 \item
-  \(\vv{x}^T\vv{Ax}\) is called quadratic form
+  \(\vv{xAx}\) is called quadratic form
 \item
   generalisation of quadratic function \(f(x) = ax^2 = xax\)
 \item
   the gradient is \(\nabla_{\vv{x}} f = 2\vv{A}\vv{x}\) (when \(A\) is
   symmetric)
 \item
-  the hessian matrix is \(\nabla_{\vv{x}}^2 f = 2\vv{A}\)
+  the hessian matrix is \(\nabla_{\vv{x}}^2 f = 2A\)
 
   \begin{itemize}
   \tightlist
@@ -1166,8 +1170,8 @@ where \(\vv{A}\) is \(\vv{I}\) (\emph{verify this!})
     positive)
   \end{itemize}
 \item
-  positive definite (P.D.) matrix \(\vv{A}\): \(\vv{x}^T\vv{Ax} >0\) for
-  all \(x\in R^m\)
+  positive definite (P.D.) matrix \(\vv{A}\): \(\vv{xAx} >0\) for all
+  \(x\in R^m\)
 
   \begin{itemize}
   \tightlist
@@ -1177,8 +1181,8 @@ where \(\vv{A}\) is \(\vv{I}\) (\emph{verify this!})
     \(f\) has a minimum
   \end{itemize}
 \item
-  negative definite (N.D.) matrix \(\vv{A}\): \(\vv{x}^T\vv{Ax} <0\) for
-  all \(x\in R^m\)
+  negative definite (N.D.) matrix \(\vv{A}\): \(\vv{xAx} <0\) for all
+  \(x\in R^m\)
 \end{itemize}
 
 \end{frame}
@@ -1206,7 +1210,7 @@ summarise the data set, sample mean
   \(\mu\begin{bmatrix}1\\ \vdots \\1 \end{bmatrix} - \begin{bmatrix}x_1 \\\vdots \\x_n\end{bmatrix} = \begin{bmatrix}\mu-x_1 \\\vdots \\\mu-x_n\end{bmatrix} \equiv \vv{e}\)
   \begin{align*} 
   \text{Let } f(\mu) &= \sum_{i=1}^{N} (\mu -x_i)^2 = (\mu \vv{1}- \vv{x})^{T}(\mu \vv{1}- \vv{x})= \vv{e}^T\vv{e} = \vv{e}^T\vv{I}\vv{e} \\
-  \frac{df}{d\mu} &=  \underbrace{\frac{\partial f}{\partial \vv{e}}\frac{d\vv{e}}{d\mu}}_{\text{chain rule}}= 2\vv{e}^T\vv{1} = 2(\mu\vv{1} - \vv{x})^T \vv{1}
+  \frac{df}{d\mu} &=  \frac{\partial f}{\partial \vv{e}}\frac{d\vv{e}}{d\mu}= 2\vv{e}^T\vv{1} = 2(\mu\vv{1} - \vv{x})^T \vv{1}
   \end{align*}
 \end{itemize}
 
@@ -1382,7 +1386,7 @@ chance to take any value between 0 and 1; the pdf is
 \[p(x) = \begin{cases} 1 & x\in [0,1] \\
 0 & \text{otherwise} \end{cases} \]
 
-\begin{center}\includegraphics[width=0.5\linewidth]{math4ml_files/figure-beamer/unnamed-chunk-14-1} \end{center}
+\begin{center}\includegraphics[width=0.5\linewidth]{math4ml_files/figure-beamer/unnamed-chunk-15-1} \end{center}
 
 Easy to verify \(\int_0^1 p(x)dx = \int_0^1 dx =1\) \bigskip
 
@@ -1400,7 +1404,7 @@ pdf is
 \((\frac{x-\mu}{\sigma})^2\) is a distance measure: how far \(x\) is
 away from \(\mu\) (measured by \(\sigma\) as a unit)
 
-\begin{center}\includegraphics[width=0.65\linewidth]{math4ml_files/figure-beamer/unnamed-chunk-15-1} \end{center}
+\begin{center}\includegraphics[width=0.65\linewidth]{math4ml_files/figure-beamer/unnamed-chunk-16-1} \end{center}
 
 \end{frame}
 

@@ -1,0 +1,147 @@
+%\usepackage[latin1]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{rotating}
+%\setbeamertemplate{caption}[numbered]
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage[normalem]{ulem}
+%\mode<presentation>
+\usepackage{wasysym}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[skins,theorems]{tcolorbox}
+\tcbset{highlight math style={enhanced,
+  colframe=red,colback=white,arc=0pt,boxrule=1pt}}
+
+\newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
+\newcommand{\Gaussian}[3]{\ensuremath{\frac{1}{\sqrt{2\pi}#3}
+\text{exp}\left \{-\frac{1}{2#3^2} (#1-#2)^2 \right \}}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\expo}[1]{\ensuremath{\text{exp}\left \{ #1 \right \}}}
+\newcommand{\studentt}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\vv}[1]{\boldsymbol{#1}}
+\newcommand{\Prb}{\ensuremath{\mathbb{P}}}
+\newcommand{\studenttk}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\NIG}{\mathcal{NIG}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\IG}{\mathcal{IG}}
+\newcommand{\IW}{\mathcal{IW}}
+\newcommand{\NNIW}{\mathcal{NNIW}}
+\newcommand{\vct}{\text{vec}}
+\newcommand{\NN}{\mathcal{NN}}
+\newcommand{\tr}{\text{tr}}
+
+
+
+\newcommand{\E}[1]{\ensuremath{\mathbb{E}[#1]}}
+\newcommand{\Var}[1]{\mathrm{Var}[#1]}
+\newcommand{\Cov}[2]{\mathrm{Cov}[#1,#2]}
+\newcommand{\Cor}[2]{\mathrm{Cor}[#1,#2]}
+
+
+% \setbeamertemplate{navigation symbols}{}
+
+
+
+%\titlegraphic{\includegraphics[width=0.3\paperwidth]{\string~/Dropbox/teaching/clemson-academic.png}}
+\titlegraphic{\includegraphics[width=0.12\paperwidth]{crest.pdf}}
+\setbeamertemplate{title page}[empty]
+
+\setbeamerfont{subtitle}{size=\small}
+
+\setbeamercovered{transparent}
+
+\definecolor{clemsonpurple}{HTML}{522D80}
+\definecolor{stablue}{HTML}{0052cc}
+\definecolor{stared}{HTML}{ff4d4d}
+\definecolor{clemsonorange}{HTML}{F66733}
+
+\setbeamercolor{frametitle}{fg=stablue,bg=white}
+\setbeamercolor{title}{fg=stablue,bg=white}
+\setbeamercolor{local structure}{fg=stablue}
+\setbeamercolor{section in toc}{fg=stablue,bg=white}
+\setbeamercolor{subsection in toc}{fg=stared,bg=white}
+\setbeamercolor{item projected}{fg=stablue,bg=white}
+\setbeamertemplate{itemize item}{\color{stablue}$\bullet$}
+\setbeamertemplate{itemize subitem}{\color{stablue}\scriptsize{$\bullet$}}
+\let\Tiny=\tiny
+
+%\makeatletter
+%\setbeamertemplate{footline}{%
+%\leavevmode
+%\vbox{\begin{beamercolorbox}[dp=1.25ex,ht=2.75ex]{fg=black}%
+%  \hspace*{1em}\insertsectionhead%
+%  \ifx\insertsubsectionhead\@empty\relax\else$\quad\mid\quad$\insertsubsectionhead\fi :
+%  \end{beamercolorbox}%
+%  }%
+%}
+%\makeatother
+
+\setbeamercolor{footercl}{fg=white,bg=stablue}
+\setbeamerfont{stafont}{size = \large}
+\setbeamerfont{footerfont}{size = \tiny}
+% \makeatother
+% \setbeamertemplate{footline}
+% {
+%   \leavevmode%
+%   \hbox{%
+%   \begin{beamercolorbox}[wd=.5\paperwidth,ht=5ex,dp=1ex, left]{footercl}%
+%     \usebeamerfont*{stafont}\hspace*{1ex}\insertshortinstitute
+%   \end{beamercolorbox}%
+%   \begin{beamercolorbox}[wd=.25\paperwidth,ht=5ex,dp=1ex,center]{footercl}%
+%     \usebeamerfont*{footerfont}\insertshorttitle\hspace*{1ex} \insertframenumber{}
+%   \end{beamercolorbox}%
+%   \begin{beamercolorbox}[wd=.25\paperwidth,ht=5ex,dp=1ex,right]{footercl}%
+%    \includegraphics[height=5ex]{stalogo.png}
+%   \end{beamercolorbox}}%
+%   \vskip0pt%
+% }
+% \makeatletter
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \fontsize{13}{13}\fontfamily{ppl}\selectfont
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{footercl}%
+    \usebeamerfont{author in head/foot}\hspace*{1ex}\insertshortinstitute
+   \end{beamercolorbox}%
+   \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{footercl}%
+    % \hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill
+    \parbox{.25\paperwidth}{\fontfamily{cmss}\selectfont{\hfill\hfill \usebeamerfont{footerfont}\insertshorttitle~\insertframenumber{}}}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{footercl}%
+    \parbox{.25\paperwidth}{\hfill\includegraphics[height=1cm]{stalogo.png}}% original: 2ex
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+\setbeamertemplate{navigation symbols}{}
+
+% \AtBeginDocument{\author[L. Fang]{Lei Fang} \institute[www.st-andrews.ac.uk]{School of Computer Science, University of St Andrews}}
+
+% \newcommand{\Ffootline}{%                   %%defines a new command called \Ffootline
+% %\insertshortauthor,                         %%puts the abbreviated form of the author's name in the left corner
+% \insertshorttitle,
+% \insertshortinstitute, 
+% \insertshortdate %%puts the abbreviated form of the author's institution in the middle
+% \hfill
+% \insertsection,
+% \insertframenumber/\inserttotalframenumber} %%includes the current slide number over the total slide number in the right corner
+% \setbeamertemplate{footline}{%              %%sets the options for the footline
+% \usebeamerfont{structure}                   %%uses the same fonts adopted for the structure of the presentation 
+% \Tiny\hspace*{4mm} \Ffootline \hspace{4mm}  %%sets the size of the font to Tiny and includes the content of the \Ffootline
+% }                                           %%command leaving a margin of 4mm to the right and left of the content.
+
+
+
+\AtBeginPart{}
+\AtBeginSection{}
+\AtBeginSubsection{}
+\AtBeginSubsubsection{}
+\setlength{\emergencystretch}{0em}
+\setlength{\parskip}{0pt}
