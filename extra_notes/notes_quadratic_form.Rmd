@@ -1,0 +1,175 @@
+---
+title: "CS5014 Machine Learning"
+subtitle: "$x^{T}Ax$ Quadratic form"
+author: "Lei Fang"
+date: "01/02/2021"
+documentclass: article
+output: 
+  pdf_document:
+    number_sections: true
+    includes:
+      in_header: notes_preamble.tex
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = FALSE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+```
+
+# Introduction
+
+A quadratic form is defined as 
+$$x^TAx,$$
+where $x=\begin{bmatrix} x_1 \\x^2\\ \vdots\\x^n \end{bmatrix}$ is a $n\times 1$ (column) vector, $A$ is a $n\times n$ square matrix (the corresponding $i$-th row and $j$-th column entry is $a_{ij}$. Therefore, $x^TAx$ is scalar function of input $x$. According to matrix multiplication rule, the quadratic form can be expanded as 
+$$x^TAx = \sum_{i=1}^n \sum_{j=1}^n a_{ij}x_ix_j$$ essentially all the second order products between $x_ix_j$ and weighed by $a_{ij}$. 
+
+```{r, fig.show ="hold", out.width="49%", fig.cap="\\label{fig:surf1} surface plot of a circular paraboloid"}
+library(plot3D)
+library(ggplot2)
+# library(plotly)
+M <- mesh(seq(-10, 10, by=0.1),seq(-10, 10, by = 0.1))
+z = M$x ^2 + M$y^2
+surf3D(x=M$x, y=M$y, z= z, colkey = TRUE, 
+        box = TRUE, bty = "b2", phi = 20, theta = 120, colvar = z,facet =F, xlab="x1", ylab="x2", zlab="f")
+
+x1 <- as.vector(M$x)
+x2 <- as.vector(M$y)
+zz <- as.vector(z)
+bowl<-data.frame(x1, x2, zz)
+v<- ggplot(bowl, aes(x1, x2, z= zz))
+v+geom_contour()+coord_fixed()
+```
+
+\begin{example}
+$f(x) = x_1^2 + x_2^2$ is a quadratic form, as  $$f(x) = x^T\begin{bmatrix} 1,0\\0,1\end{bmatrix}x = x^Tx$$. Its surface plot in $R^3$ and contour plot is show below in Fig~\ref{fig:surf1}. A contour plot shows all the levels sets: \emph{i.e.} all the $x\in R^n$ in the input space such at $f(x) = c$ is a constant. 
+\end{example}
+
+
+\begin{example}
+$f(x) = 4x_1^2 + x_2^2$ is a quadratic form as well: $$f(x) = [x_1, x_2] \begin{bmatrix}4, 0\\0, 1\end{bmatrix} \begin{bmatrix} x_1\\ x_2\end{bmatrix}.$$ The plots shown in Fig~\ref{fig:surf2} and~\ref{fig:cont2} suggest the contours become ellipses. So scaling $a_{11}$ (or other diagonal entries) has the effect of compressing that direction. If ${A} = \begin{bmatrix} 1,0\\0,4\end{bmatrix}$, the effect is compressing $x_2$ direction. 
+
+
+```{r, fig.show="hold", out.width="49%", fig.cap="\\label{fig:surf2} surface plot of two axis-aligned elliptic paraboloid: scaling diagonal entry of $A$ has the effect of compressing the bowl"}
+library(plot3D)
+library(ggplot2)
+# library(plotly)
+M2 <- mesh(seq(-80, 80, by=0.5),seq(-125, 125, by = 0.5))
+z = 4*(M2$x^2) + M2$y^2
+surf3D(x=M2$x, y=M2$y, z= z, colkey = F, xlim= c(-100,100),ylim=c(-100,100),
+        box = TRUE, bty = "b2", phi = 20, theta = 120, colvar = z,facet =F, xlab="x1", ylab="x2", zlab="f")
+M3 <- mesh(seq(-125, 125, by=0.5),seq(-80, 80, by = 0.5))
+z3 = 1*(M3$x^2) + 4*M3$y^2
+surf3D(x=M3$x, y=M3$y, z= z3, colkey = F, xlim= c(-100,100),ylim=c(-100,100),
+         box = TRUE, bty = "b2", phi = 20, theta = 120, colvar = z3,facet =F, xlab="x1", ylab="x2", zlab="f")
+```
+
+```{r, fig.show="hold", out.width="49%", fig.cap="\\label{fig:cont2} contour plots of two axis aligned elliptic paraboloid"}
+x1 <- as.vector(M2$x)
+x2 <- as.vector(M2$y)
+zz <- as.vector(z)
+bowl<-data.frame(x1, x2, zz)
+v<- ggplot(bowl, aes(x1, x2, z= zz))
+v+geom_contour()+coord_fixed()
+
+x1 <- as.vector(M3$x)
+x2 <- as.vector(M3$y)
+zz <- as.vector(z3)
+bowl<-data.frame(x1, x2, zz)
+v<- ggplot(bowl, aes(x1, x2, z= zz))
+v+geom_contour()+coord_fixed()
+```
+
+\end{example}
+
+
+\begin{example}
+ $$A = \begin{bmatrix}3, 4\\4, 3\end{bmatrix}$$ The plots shown in Fig~\ref{fig:surf3} suggest the contours become rotated ellipses. Therefore, non-diagnonal entries of $A$ rotate the elliptic paraboloid ($A$ has to be either positive definite or negative definite). 
+
+```{r, fig.show="hold", out.width="49%", fig.cap="\\label{fig:surf3} surface plot of a rotated elliptic paraboloid: non-diagonal entries rotate the ellipse"}
+M2 <- mesh(seq(-125, 125, by=0.5),seq(-125, 125, by = 0.5))
+z = 3*(M2$x^2) + 3*(M2$y^2) + 4*(M2$x*M2$y)
+surf3D(x=M2$x, y=M2$y, z= z, colkey = F, xlim= c(-100,100),ylim=c(-100,100),
+        box = TRUE, bty = "b2", phi = 20, theta = 120, colvar = z,facet =F, xlab="x1", ylab="x2", zlab="f")
+
+x1 <- as.vector(M2$x)
+x2 <- as.vector(M2$y)
+zz <- as.vector(z)
+bowl<-data.frame(x1, x2, zz)
+v<- ggplot(bowl, aes(x1, x2, z= zz))
+v+geom_contour()+coord_fixed()
+```
+\end{example}
+
+
+
+# Common quadratic forms in machine learning models
+
+Quadatric form, $x^{T}Ax$, is used a lot in machine learning models. The following are three cases.
+
+\textbf{Linear regression:}
+the loss function of a linear regression is $$L(\theta) = (y-X\theta)^T(y-X\theta),$$ which is a quadratic form of $\theta$.
+
+\textbf{Gaussian distribution:}
+the kernel of a multivariate Gaussian is a quadratic form, namely $$-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu),$$ where $\mu, \Sigma$ are the mean and variance-covariance matrix respectively. The kernel is a quadratic form of input $x$. 
+ 
+\textbf{Taylor expansion:}
+Taylor's expansion contains quadratic forms as well: $$T(x) = f(a) + \nabla_x f(a)(x-a)  + \frac{1}{2!}\underbrace{ (x-a)^{T}\nabla^2_xf(a)(x-a)}_{q.f.}+\ldots,$$ 
+where $\nabla_x f(a)$ is the gradient of $f$ and $\nabla^2_x f(a)$ is the hessian matrix. Note that we define gradients as row vectors, so the second term $\nabla_x f(a)(x-a)$ is an inner product. The expansion approximates a multivariate $R^n\rightarrow R$ function $f(x)$ by a polynomial function $T(x)$. The third term is a quadratic form of input $x$.  
+  
+  
+
+
+# Gradient and Hessian of a quadratic form
+
+It should be easy to remember the following results if you compare it with univariate quadratic function $f(x)= ax^2 = axa$, whose gradient is $f' = 2ax$ and second order derivative is $f''=2a$. 
+
+## Gradient of a quadratic form
+
+The gradient of $f(x) = x^T A x$ is 
+$$\nabla_{{x}} f(x)= x^{T} (A+A^T)$$
+Note that as we have adopted the convention that gradients are row vectors, hence the gradient is written as $2x^TA$, a $1\times n$ vector. 
+
+
+If $A$ is symmetric, then $A= A^T$, therefore
+
+$$\nabla_{{x}} f(x)= x^{T} (A+A^T) = 2x^{T}A$$
+
+
+
+## Hessian of a quadratic form
+
+The Hessian or gradient of the gradient of $f(x) = x^T A x$ is $$\nabla_{x}^2 f(x) = A^T +A$$
+
+If $A$ is symmetric, the Hessian is $$\nabla_{x}^2 f(x) = 2A$$
+
+## Maximum and minimum of a quadratic form
+
+- If $\nabla_{x}^2 f(x)$ is positive definite, $f(x) = x^TAx$ has a minimum; 
+- If $\nabla_{x}^2 f(x)$ is negative definite, $f(x) = x^TAx$ has a maximum; 
+
+### Positive definite matrix
+
+If matrix $A$ is positive definite, then $x^TAx >0$ for $\forall x \in R^n$
+
+
+# Positive definite quadratic form
+a multivaraite Gaussian distribution ($k$ dimensional) is
+$$p(x) = (2\pi)^{-\frac{k}{2}} \text{det}(\Sigma)^{-\frac{1}{2}} e^{-\frac{1}{2} (x-\mu)^T\Sigma^{-1}(x-\mu)}$$ 
+  
+  
+  
+  This note lists some important facts about quadratic form. 
+
+First and foremost, it returns a scalar given an input of vector $x$. 
+
+  $$x^TAx: R^{m}\rightarrow R$$
