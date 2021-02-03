@@ -1,0 +1,858 @@
+---
+title: CS5014 Machine Learning
+subtitle: Lecture 3 Linear Regression
+author: "Lei Fang"
+date: Spring 2021
+output: 
+  beamer_presentation:
+    df_print: "kable"
+    keep_tex: true
+#    toc: true
+#    slide_level: 3
+    includes:
+      in_header: 
+        - sta-beamer-header-simple.tex
+        - l3.tex
+        # - title-page.tex
+#      after_body: ~/Dropbox/teaching/table-of-contents.txt
+bibliography: "ref.bib"
+---
+
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = FALSE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(reticulate)
+matplotlib <- import("matplotlib", convert = TRUE)
+matplotlib$use("Agg")
+write_matex2 <- function(x) {
+  begin <- "\\begin{bmatrix}"
+  end <- "\\end{bmatrix}"
+  X <-
+    apply(x, 1, function(x) {
+      paste(
+        paste(round(x,2), collapse = "&"),
+        "\\\\"
+      )
+    })
+  paste(c(begin, X, end), collapse = "")
+}
+# py_config()
+```
+
+
+```{r, include=FALSE}
+height = c(42.8, 63.5, 37.5, 39.5, 45.5, 38.5, 43, 22.5, 37, 23.5, 33, 58)
+weight = c(40, 93.5, 35.5, 30, 52,  17, 38.5, 8.5, 33, 9.5, 21, 79)
+length = c(37, 50, 34, 36, 43, 28, 37, 20, 34, 30, 38, 47)
+catheterData = data.frame("height in"=height, "weight lbs" = weight, "length cm" = length)
+catheterData2 = data.frame("height"=height, "weight" = weight, "length" = length)
+```
+
+
+
+
+# Introduction
+
+## Topics for today
+
+Linear regression
+  
+  - matrix notation
+  - normal equation and closed form solution
+    - vector calculus perspective
+    - linear algebra perspective: projection
+  - gradient descent 
+    - a more general solution
+    
+
+## Supervised learning vs unsupervised learning
+
+
+Supervised learning
+
+  - dataset contains both predictors $\vv{x} = \{x_1, \ldots, x_n\}$ and targets ${y}$
+  - regression: $y$ is continuous
+    - e.g. predict your height based your weight: $n=1$, and $x_1$ is height, $y$ is weight
+  - classification: $y$ is categorical 
+    - e.g. predict adult or child $y=\{A, C\}$ based on height measurement $\vv{x}$
+  
+\bigskip
+
+Unsupervised learning  
+  
+  - dataset formed only with predictors $\vv{x}$: no targets
+  - aim: understand the underlying structure of $\vv{x}$
+  - typical learning: clustering, dimension reduction etc.
+
+## Regression: Catheter dataset
+
+Task: predict a patient's catheter *length* (target) by predictors: *height* and *weight*
+\vspace{-0.2cm}
+\footnotesize
+```{r}
+catheterData
+```
+
+## Regression: Catheter dataset
+
+The regression problem can be formed as: 
+$$y^{(i)} =f(\vv{x}^{(i)}; \vv{\theta}) + e^{(i)}$$
+  
+  - $f$ is a model that predict $y^{(i)}$ from $\vv{x}^{(i)}$
+    - $i = 1,\ldots,m$: index of data samples (row index), 
+    - $m$ is the total training size
+  - $\vv{x}^{(i)} = [x_{1}^{(i)}, \ldots, x^{(i)}_n]^T$ is a $n\times 1$ vector: 
+    - $n$: number of predictors (columns)
+  - e.g. $y^{(1)} = 37$ and $\vv{x}^{(1)} = [42.8, 40]^T$
+  - $\vv{\theta}$ is the model parameter
+  - $e^{(i)}$ is the prediction difference of the $i$-th entry
+  
+
+## Linear regression
+
+If we further assume the relationship is linear, i.e.
+\begin{align*}
+f(\vv{x}^{(i)}; \vv{\theta}) &= \theta_0 + \theta_1  x^{(i)}_{1} + \ldots +\theta_{n} x^{(i)}_n \\
+&= [\theta_0, \theta_1, \ldots, \theta_n] \begin{bmatrix}1\\ x^{(i)}_1\\ \vdots\\ x^{(i)}_n\end{bmatrix} = \vv{\theta}^T\vv{x}^{(i)}
+\end{align*}
+the regression is called **linear regression**
+
+\bigskip
+
+  - a dummy predictor $x_0^{(1)}=1$ is added to $\vv{x}^{(i)}$
+
+
+
+## Linear regression: least squared error
+
+The prediction error is 
+
+$$e^{(i)} = y^{(i)} - f(\vv{x}^{(i)}; \vv{\theta}) = y^{(i)} - \vv{\theta}^T\vv{x}^{(i)}$$
+
+The sum of squared errors is 
+
+$$L(\vv{\theta}) = \sum_{i=1}^m (y^{(i)} - \vv{\theta}^T\vv{x}^{(i)})^2$$
+
+
+Learning objective is then to minimise the cost function
+
+$$\hat{\theta} = \argmin_{\vv{\theta}} L(\vv{\theta}; \{\vv{x}^{(i)}, y^{(i)}\}_1^m)$$
+
+
+## Linear models and hyperplane
+
+Geometrically, linear function
+
+$$f(\vv{x}; \vv{\theta}) = \theta_0 + \theta_1  x_{1} + \ldots +\theta_{n} x_n = \vv{\theta}^T\vv{x}$$ is a hyperplane 
+
+  - $\vv{\theta}$ is the gradient vector $\nabla_{\vv{x}} f$: the greatest ascent direction of $f$
+  - minising $L$ means to find a hyperplane that *fits* the data best 
+\bigskip
+
+```{r, out.width="100%"}
+library(plot3D)
+# x, y, z variables
+x <- mtcars$wt
+y <- mtcars$disp
+z <- mtcars$mpg
+# Compute the linear regression (z = ax + by + d)
+fit <- lm(z ~ x + y)
+# predict values on regular xy grid
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+y.pred <- seq(min(y), max(y), length.out = grid.lines)
+xy <- expand.grid( x = x.pred, y = y.pred)
+z.pred <- matrix(predict(fit, newdata = xy), 
+                 nrow = grid.lines, ncol = grid.lines)
+# fitted points for droplines to surface
+fitpoints <- predict(fit)
+# scatter plot with regression plane
+par(mfrow=c(1,3)) 
+par(mar=c(3,3,3,0.1)+.1)
+z.pred.zero <- matrix(as.matrix(xy) %*% c(0,0) +mean(z), nrow=grid.lines, ncol = grid.lines)
+fitpoints.zero <- fitpoints.zero <- cbind(x,y) %*% c(0,0) +mean(z)
+lzero <- sum((fitpoints.zero-z)^2)
+scatter3D(x, y, z, pch = 18, cex = 2, 
+    theta = 20, phi = 20, ticktype = "detailed",
+    xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE,
+    surf = list(x = x.pred, y = y.pred, z = z.pred.zero,  
+    facets = NA, fit = fitpoints.zero))
+title(main=(paste( "L=", round(lzero, digits = 2))), cex.main=2.5 ,line = -11)
+
+
+llse <- sum((fitpoints - z)^2)
+
+
+z.pred.fit2 <- matrix(as.matrix(xy) %*% c(fit$coefficients[2]/2,fit$coefficients[3]*(1.5)) +fit$coefficients[1]*0.8, nrow=grid.lines, ncol = grid.lines)
+fitpoints.fit2 <- cbind(x,y) %*% c(fit$coefficients[2]/2,fit$coefficients[3]*(1.5)) +fit$coefficients[1]*0.8
+lfit2 <- sum((fitpoints.fit2-z)^2)
+scatter3D(x, y, z, pch = 18, cex = 2, 
+    theta = 20, phi = 20, ticktype = "detailed",
+    xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE,
+    surf = list(x = x.pred, y = y.pred, z = z.pred.fit2,  
+    facets = NA, fit = fitpoints.fit2))
+title(main=(paste( "L=", round(lfit2, digits = 2))), cex.main=2.5 ,line = -11)
+llse <- sum((fitpoints - z)^2)
+
+scatter3D(x, y, z, pch = 18, cex = 2, 
+    theta = 20, phi = 20, ticktype = "detailed",
+    xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE,
+    surf = list(x = x.pred, y = y.pred, z = z.pred,  
+    facets = NA, fit = fitpoints))
+title(main=(paste("L=", round(llse, digits = 2))),line = -11, cex.main=2.5)
+```
+
+## How to optimise $L(\vv{\theta})$ ?
+
+Vector calculus is our friend: 
+
+  - find the gradient $\nabla_{\vv{\theta}} L$
+  - set it to zero 
+  
+\bigskip
+
+In matrix notation, let 
+$$\vv{y} = \begin{bmatrix} y^{(1)}\\ y^{(2)}\\ \vdots\\ y^{(m)} \end{bmatrix},  \vv{X} = \begin{bmatrix}
+1 & x_1^{(1)} & \ldots & x_{n}^{(1)}\\
+1 & x_1^{(2)} & \ldots & x_{n}^{(2)} \\
+\vdots & \vdots & & \vdots \\
+1 & x_1^{(m)} & \ldots & x_{n}^{(m)}
+\end{bmatrix} = \begin{bmatrix} \text{---} (\vv{x}^{(1)})^T \text{---} \\
+\text{---} (\vv{x}^{(2)})^T \text{---} \\
+\vdots \\
+ \text{---} (\vv{x}^{(m)})^T \text{---}
+\end{bmatrix}, \vv{\theta} =\begin{bmatrix} \theta_0\\ \theta_1\\ \vdots \\ \theta_n\end{bmatrix}$$
+then
+
+$$\vv{e} = \begin{bmatrix} e^{(1)} \\ \vdots \\ e^{(m)}\end{bmatrix} = \begin{bmatrix} y^{(1)}\\ \vdots\\ y^{(m)} \end{bmatrix} - \begin{bmatrix} (\vv{x}^{(1)})^T \vv{\theta} \\
+\vdots \\
+ (\vv{x}^{(m)})^T \vv{\theta}
+\end{bmatrix} = \vv{y} - \vv{X\theta}$$
+
+
+## Find the gradient: $\nabla_{\vv{\theta}}L$
+
+$$L(\vv{\theta}) = \sum_{i=1}^m (y^{(i)} - \vv{\theta}^T\vv{x}^{(i)})^2 = (\vv{y} -\vv{X\theta})^T(\vv{y}-\vv{X\theta}) = \vv{e}^T\vv{e}$$
+
+  - it is a quadratic form (a quadratic form is $\vv{x}^T \vv{A} \vv{x}$: a row vector times a matrix times a column vector, the result is a scalar !)
+    $$\frac{\partial L}{\partial \vv{e}} \equiv \nabla_{\vv{e}} L = \nabla_{\vv{e}} (\vv{e}^T\vv{I}\vv{e}) = 2(\vv{Ie})^T = 2\vv{e}^{T}$$
+  - but we need $\nabla_{\vv{\theta}}L$, to apply chain rule we need:
+  $$\frac{\partial \vv{e}}{\partial \vv{\theta}} = \frac{\partial (\vv{y}- \vv{X\theta})}{\partial \vv{\theta}} =-\vv{X}$$
+  - finally, 
+  $$\nabla_{\vv{\theta}} L = \frac{\partial L}{\partial \vv{e}}\frac{\partial \vv{e}}{\partial \vv{\theta}} = 2\vv{e}^{T}(-\vv{X}) = -2(\vv{y}-\vv{X\theta})^{T}\vv{X} $$
+  
+
+## A few notes on vector derivatives: gradient as row vector
+
+
+For vector to scalar function $f(\vv{\beta}): R^m \rightarrow R$: the gradient
+  
+  $$\nabla_{\vv{x}}f = \left [\frac{\partial f}{\partial \beta_1}, \ldots, \frac{\partial f}{\partial \beta_m}\right ]\in R^{1\times m}$$
+  
+  - we adopt the convention: gradients as *row vectors* 
+  - e.g. for $L(\vv{e}) = \vv{e}^T\vv{e}$: $\nabla_{\vv{e}} L = 2\vv{e}^{T}$ 
+    - $\vv{e}$ is defined as a column vector, its transpose is a row vector
+  
+## A few notes on vector derivatives: vector valued functions
+  
+The convention generalises well to $\vv{g}(\vv{\theta}): R^n\rightarrow R^m$ functions: e.g.
+  
+  $$\vv{e} = \vv{g}(\vv{\theta}) =\vv{y} - \vv{X}\vv{\theta}$$ 
+  
+  - a vector to vector function: $R^n\rightarrow R^m$
+  - each $e^{(i)} = y^{(i)}- (\vv{x}^{(i)})^T \vv{\theta} = y^{(i)}- \sum_{j=1}^n ({x}^{(i)}_j) {\theta_j}$ is $R^n \rightarrow R$
+    - its gradient is a row vector ($\theta_0$ and $x_0$ are dropped here for convenience)
+    $$\nabla_{\vv{\theta}} e^{(i)} = \left [\frac{\partial e^{(i)}}{\partial\theta_1}, \ldots, \frac{\partial e^{(i)}}{\partial\theta_n}\right ] = \left [-x_1^{(i)}, \ldots, -x_n^{(i)} \right]$$
+ 
+  - the gradient for $\nabla_{\vv{\theta}} \vv{g}(\vv{\theta})$ is
+  $$\nabla_{\vv{\theta}} \vv{g}(\vv{\theta})  = \begin{bmatrix} \nabla_{\vv{\theta}} e^{(1)} \\ \vdots \\ \nabla_{\vv{\theta}} e^{(m)} \end{bmatrix}  = \begin{bmatrix} -x_1^{(1)}, \ldots, -x_n^{(1)}  \\ \vdots \\ -x^{(m)}_1, \ldots, -x^{(m)}_n  \end{bmatrix}= -\vv{X}$$
+  
+##
+
+  - easier to use chain rule (matrix shapes need to match to multiple!):
+   $$\nabla_{\vv{\theta}} L = \frac{\partial L}{\partial \vv{e}}\frac{\partial \vv{e}}{\partial \vv{\theta}} = 2\vv{e}^{T}(-\vv{X}) = -2(\vv{y}-\vv{X\theta})^{T}\vv{X} $$ is still a row vector
+
+ 
+## Some useful gradients
+
+$$\frac{\partial (\vv{b} + \vv{Ax})}{\partial \vv{x}} = \vv{A};\;\; \frac{\partial (\vv{b} - \vv{Ax})}{\partial \vv{x}} = -\vv{A}$$
+
+\begin{equation*}
+\frac{\partial \vv{x}^T \vv{a}}{\partial \vv{x}}= \frac{\partial \vv{a}^T \vv{x}}{\partial \vv{x}} = \vv{a}^T  
+\end{equation*}
+
+  $$\frac{\partial\vv{x}^T\vv{B}\vv{x}}{\partial\vv{x}} = \vv{x}^{T}(\vv{B}+ \vv{B}^{T});\;\; \frac{\partial\vv{x}^T\vv{W}\vv{x}}{\partial\vv{x}} = 2\vv{x}^{T}\vv{W}; \; \vv{W}\text{ is symmetric}$$
+ $$\frac{\partial\vv{x}^T\vv{x}}{\partial\vv{x}} = 2\vv{x}^{T}$$
+ $$\frac{\partial(\vv{x}-\vv{As})^T\vv{W}(\vv{x}-\vv{As})}{\partial\vv{s}} = -2(\vv{x}-\vv{As})^T\vv{WA},\; \vv{W} \text{ is symmetric}$$
+
+$$\frac{\partial a^T\vv{X}\vv{b}}{\partial\vv{X}} = \vv{ab}^{T}$$
+
+## Normal equation for linear regression
+
+To find the minimum, set $\nabla_{\vv{\theta}} L =\vv{0}$, we have the **Normal Equations**: 
+
+\begin{align*}
+2(\vv{y}-\vv{X\theta})^{T}\vv{X} = \vv{0}^T &\Rightarrow 2\vv{X}^T (\vv{y}-\vv{X\theta})= \vv{0} \\ &\Rightarrow \vv{X}^T\vv{X}\vv{\theta} = \vv{X}^T\vv{y}
+\end{align*}
+\bigskip
+
+Assuming $\vv{X}^T\vv{X}$ is invertible (nonsingular), we have the closed-form solution
+
+$$\vv{\theta}_{ls} = (\vv{X}^T\vv{X})^{-1}\vv{X}^{T}\vv{y}$$
+
+  - ``ls'' means least square 
+ 
+
+
+## $(\vv{X}^T\vv{X})$ singular case
+
+$\vv{X}^T\vv{X}$ has to be invertible or nonsingular
+  
+  - otherwise, the matrix is called ill-conditioned 
+  - like dividing a number by $0$
+ 
+\bigskip 
+
+Note that $\text{rank}(\vv{X^TX}) = \text{rank}(\vv{X})$ 
+  
+  - so $\vv{X}$ has linearly dependent columns $\Rightarrow$ $\vv{X}^T\vv{X}$ singular
+  - e.g. the same feature but measured in different units, like inch or cm: $\vv{x}_h =k\times \vv{x}_i$
+  - also called highly correlated features (redundant feature for regressing $\vv{y}$)
+  - or more general, one of the feature is a linear combination of the rest
+  
+\bigskip
+
+Deal with nonsingular $\vv{X}^T\vv{X}$
+
+  - remove problematic features
+  - dimension reduction first
+  - regularization (more on this later)
+
+
+## Normal equation: projection view of $\text{col}(X)$
+
+Derivative is way too complicated! Let's see something cooler :-)
+\begin{align*}\footnotesize \vv{X\theta} = \begin{bmatrix}
+1 & x_1^{(1)} & \ldots & x_{n}^{(1)}\\
+1 & x_1^{(2)} & \ldots & x_{n}^{(2)} \\
+\vdots & \vdots & & \vdots \\
+1 & x_1^{(m)} & \ldots & x_{n}^{(m)}
+\end{bmatrix} \begin{bmatrix} \theta_0\\ \theta_1\\ \vdots \\ \theta_n\end{bmatrix} = \theta_0 \begin{bmatrix}1 \\ 1\\ \vdots \\ 1\end{bmatrix}+ \theta_1 \begin{bmatrix}x^{(1)}_1 \\ x^{(2)}_1\\ \vdots\\ x^{(m)}_1\end{bmatrix} +\ldots+  \theta_n \begin{bmatrix}x^{(1)}_n \\ x^{(2)}_n\\ \vdots\\ x^{(m)}_n\end{bmatrix} \end{align*}
+$$=\theta_0 \vv{x}_0 + \theta_{1} \vv{x}_1 +\ldots + \theta_n \vv{x}_n$$
+
+  - linear combination of column vectors of $\vv{X}$
+
+\bigskip 
+
+what does $\vv{y} = \vv{X\theta}$ solve ?
+  
+  - whether $\vv{y}$ can be represented as a linear combination of column vectors of $\vv{X}$
+  - or $\vv{y}$ lives in the column space or not: $\vv{y} \in? \text{span}(\{\vv{x}_0, \vv{x}_1, \ldots, \vv{x}_n\})$
+ 
+## 
+
+$\vv{y}= \vv{X\theta}$ is over determined: $m>n$
+  
+  - usually $\vv{y} \notin \text{span}(\{\vv{x}_0, \vv{x}_1, \ldots, \vv{x}_n\})$ 
+  - but we can find its best approximation in that span: $$\hat{\vv{y}} = \vv{X}\vv{\theta} \in \text{span}(\{\vv{x}_0, \vv{x}_1, \ldots, \vv{x}_n\})$$
+  - and minimise $\vv{e} = \vv{y}-\hat{\vv{y}}$
+  
+\begin{figure}
+    \centering
+    \includegraphics[width = 0.8\textwidth]{./projview1.png}
+ % \caption{Awesome figure}
+\end{figure}  
+
+
+
+##
+\vspace{-0.3cm}
+\begin{figure}
+    \centering
+   \includegraphics[width = 0.47\textwidth, trim=1.2cm 0.5cm 0.8cm 0cm, clip]{./projview1.png}  \includegraphics[width = 0.51\textwidth, trim=0.5cm 0.5cm 0.5cm 0cm, clip]{./projview2.png}
+ % \caption{Awesome figure}
+\end{figure}  
+
+$\vv{e}$ is minimised when $\hat{\vv{y}}$ is $\vv{y}$'s projection in $\vv{span}(\{\vv{x}\})$, or
+  $$\vv{e} \perp \text{span}(\{\vv{x}_0, \vv{x}_1, \ldots, \vv{x}_n\}) \text{ or}$$
+  $$\begin{cases} \vv{x}_0 ^T \vv{e} = 0 \\ \vv{x}_1 ^T \vv{e} = 0 \\ \ldots\\ \vv{x}_n ^T \vv{e} =0  \end{cases}\Rightarrow \vv{X}^T\vv{e} =\vv{0} \Rightarrow  \vv{X}^T(\vv{y}-\vv{X\theta}) =\vv{0}$$
+
+
+## Hat matrix
+
+The projected vector : $$\hat{\vv{y}} = \vv{X}\vv{\theta} = \underbrace{\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}}_{\text{hat matrix}}\vv{y}$$
+  
+  - ``it gives $\vv{y}$ a hat'': so given this name 
+  - it is also a projection matrix: it projects $\vv{y}$ to its projection $\hat{\vv{y}}$
+  - note that for all projection matrix $\vv{P}$, $\vv{PP} =\vv{P}$:
+  
+  $$(\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T})(\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}) =\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}$$
+  
+  - $\vv{PP}\ldots\vv{P} =\vv{P}$
+  - $\vv{PP}\ldots\vv{Px} = \vv{Px}$ as expected: further projections have no effect
+  
+  
+## Gradient descent 
+
+For most models, $\nabla_{\vv{\theta}} L(\vv{\theta}) = \vv{0}$ has no closed form solution
+  
+  - linear regression is probably the only exception
+
+\bigskip
+
+Gradient descent provides a more general algorithm 
+
+\bigskip
+
+Remember what gradient $\nabla_{\vv{\theta}} L(\vv{\theta}_t)$ is ?
+
+  - it points to the greatest ascent direction of $L$ at location $\vv{\theta}_t$
+  - gradient descent algorithm is simple
+  - at each $t$, we move by the steepest descent direction 
+  - looping until converge: 
+
+$$\vv{\theta}_{t+1} \leftarrow  \vv{\theta}_{t} - \alpha \nabla_{\vv{\theta}}L(\vv{\theta}_t)$$  
+
+
+## Gradient recap
+
+For function $L(\vv{\theta})$
+
+  - the gradient $\nabla_{\vv{\theta}}L(\vv{\theta})$ points to the ascent direction
+    - vector field: input a location, output a direction
+  - the opposite $-\nabla_{\vv{\theta}}L(\vv{\theta})$ points to the steepest descent direction
+  - $\vv{\theta}_{t} - \alpha \nabla_{\vv{\theta}}L(\vv{\theta}_t)$ moves to a new position in the input space
+  
+\begin{columns}
+    \begin{column}{0.48\textwidth}
+```{r, out.width="100%"}
+M <- mesh(seq(-5, 5, by=0.1),seq(-5, 5, by = 0.1))
+z = M$x ^2 + M$y^2
+surf3D(x=M$x, y=M$y, z= z, colkey = FALSE, 
+       box = TRUE, bty = "b", phi = 20, theta = 120, colvar = z, xlab="theta1", ylab="theta2", zlab="f")
+```
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{figure}
+    \centering
+    \includegraphics[width = \textwidth]{./gradvecfield.eps}
+ % \caption{Awesome figure}
+\end{figure}
+    \end{column}
+\end{columns}
+
+
+## Gradient descent: step by step 
+
+```{r}
+cost <- function(X, y, theta) {
+  sum( (X %*% theta - y)^2 )/length(y)
+}
+
+grad_v <- function(X, y, theta){
+  -2*t(X) %*% (error)
+}
+# learning rate and iteration limit
+alpha <- 0.0002
+num_iters <- 10000
+# keep history
+cost_history <- double(num_iters)
+theta_history <- list(num_iters)
+# initialize coefficients
+theta <- matrix(c(0,0,0), nrow=3)
+x <- cbind(catheterData2$height, catheterData2$weight)
+#x <- scale(x)
+# add a column of 1's for the intercept coefficient
+X <- cbind(1, x)
+y <- catheterData2$length
+# gradient descent
+for (i in 1:num_iters) {
+  error <- y-X %*% (theta)
+  delta <- -1*t(X) %*% (error)/length(y) 
+  theta <- theta - alpha * delta
+  cost_history[i] <- cost(X, y, theta)
+  theta_history[[i]] <- theta
+}
+```
+
+
+Initialisation: $\vv{\theta}_0 = \vv{0}$; 
+
+  <!-- - $\nabla_{\vv{\theta}}L(\vv{\theta}_0) = -2(\vv{y}-\vv{X}\vv{0})^{T}\vv{X}$ -->
+  
+  - $L = `r round(cost(X,y, c(0,0,0)), 2)`$
+
+
+
+
+```{python, out.width="50%", echo=FALSE, warning=FALSE, message=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Create a dictionary to pass to matplotlib
+# This is an easy way to set many parameters at once
+fontsize = "18";
+params = {'figure.autolayout':True,
+          'legend.fontsize': fontsize,
+          'figure.figsize': (8, 8),
+         'axes.labelsize': fontsize,
+         'axes.titlesize': fontsize,
+         'xtick.labelsize':fontsize,
+         'ytick.labelsize':fontsize}
+plt.rcParams.update(params)
+
+# Load the data from the space-separated txt file. 
+# This will create a 2D numpy array
+data = np.loadtxt('l01-data.txt')
+
+# Extract columns 1 and 2 (X) and 3 (Y)
+x = data[:, 1:3]
+y = data[:, 3]
+
+# Create a new figure and an axes objects for the subplot
+# We only have one plot here, but it's helpful to be consistent
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# We will sample both X1 and X2 dimensions and evaluate the model
+# at each X1,X2 coordinate in turn. Our model is simply the Y value
+# of the nearest neighbour
+ 
+# Define the resolution of the graph. Then choose 'res' points in
+# each dimension, linearly spaced between min and max
+res = 30
+xspace = np.linspace(0, 80, res)
+yspace = np.linspace(0, 100, res)
+
+# Create a grid of these two sequences
+xx, yy = np.meshgrid(xspace, yspace)
+
+# Manually choose some parameters
+theta = np.array([0,0,0])
+#theta = np.array([0.00723333,0.30790167,0.31110833])
+#theta = np.array([0.00960774,0.39461445,0.3813686 ])
+#theta = np.array([0.01074602,0.42532418,0.39100331])
+
+# Calculate our linear model
+tt = theta[0] + xx*theta[1] + yy*theta[2]
+
+# Now plot these values as a surface. tt represents the predicted Y value 
+# of each X1 and X2 pair
+# We also added a colourmap, so we can match this graph to the 2D one 
+ax.plot_surface(xx, yy, tt, rstride=1, cstride=1, cmap='jet', edgecolor='none',alpha=0.6) 
+
+# then add the original datapoints on top as reference
+ax.scatter(x[:,0], x[:,1], y, color='k', marker='o', s=140)
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+# change the viewing angle so we can actually see what's happening 
+ax.view_init(elev=10., azim=-40)
+
+# Label the axes to make the plot understandable
+ax.set_xlabel('x1 = Height (in)')
+ax.set_ylabel('x2 = Weight (lbs)')
+ax.set_zlabel('y = Cath length (cm)')
+
+# change the numbering on the X1 and X2 axes. At the desired viewing angle,
+# numbers were jumbled together. This cosmetic change makes them readable again
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+plt.show()
+```
+
+## Gradient descent: step by step
+
+Step 1: $\vv{\theta}_1 = [0.007, 0.308, 0.311]$
+  
+  - $L = 168$
+  
+  
+ ```{python, out.width="50%", echo=FALSE, warning=FALSE, message=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Create a dictionary to pass to matplotlib
+# This is an easy way to set many parameters at once
+fontsize = "18";
+params = {'figure.autolayout':True,
+          'legend.fontsize': fontsize,
+          'figure.figsize': (8, 8),
+         'axes.labelsize': fontsize,
+         'axes.titlesize': fontsize,
+         'xtick.labelsize':fontsize,
+         'ytick.labelsize':fontsize}
+plt.rcParams.update(params)
+
+# Load the data from the space-separated txt file. 
+# This will create a 2D numpy array
+data = np.loadtxt('l01-data.txt')
+
+# Extract columns 1 and 2 (X) and 3 (Y)
+x = data[:, 1:3]
+y = data[:, 3]
+
+# Create a new figure and an axes objects for the subplot
+# We only have one plot here, but it's helpful to be consistent
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# We will sample both X1 and X2 dimensions and evaluate the model
+# at each X1,X2 coordinate in turn. Our model is simply the Y value
+# of the nearest neighbour
+ 
+# Define the resolution of the graph. Then choose 'res' points in
+# each dimension, linearly spaced between min and max
+res = 30
+xspace = np.linspace(0, 80, res)
+yspace = np.linspace(0, 100, res)
+
+# Create a grid of these two sequences
+xx, yy = np.meshgrid(xspace, yspace)
+
+# Manually choose some parameters
+#theta = np.array([0,0,0])
+theta = np.array([0.00723333,0.30790167,0.31110833])
+#theta = np.array([0.00960774,0.39461445,0.3813686 ])
+#theta = np.array([0.01074602,0.42532418,0.39100331])
+
+# Calculate our linear model
+tt = theta[0] + xx*theta[1] + yy*theta[2]
+
+# Now plot these values as a surface. tt represents the predicted Y value 
+# of each X1 and X2 pair
+# We also added a colourmap, so we can match this graph to the 2D one 
+ax.plot_surface(xx, yy, tt, rstride=1, cstride=1, cmap='jet', edgecolor='none',alpha=0.6) 
+
+# then add the original datapoints on top as reference
+ax.scatter(x[:,0], x[:,1], y, color='k', marker='o', s=140)
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+# change the viewing angle so we can actually see what's happening 
+ax.view_init(elev=10., azim=-40)
+
+# Label the axes to make the plot understandable
+ax.set_xlabel('x1 = Height (in)')
+ax.set_ylabel('x2 = Weight (lbs)')
+ax.set_zlabel('y = Cath length (cm)')
+
+# change the numbering on the X1 and X2 axes. At the desired viewing angle,
+# numbers were jumbled together. This cosmetic change makes them readable again
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+plt.show()
+```
+
+
+## Gradient descent: step by step 
+
+Step 2: $\vv{\theta}_2 = [0.010, 0.395, 0.381]$
+  
+  - $L = 89.22$
+
+ ```{python, out.width="50%", echo=FALSE, warning=FALSE, message=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Create a dictionary to pass to matplotlib
+# This is an easy way to set many parameters at once
+fontsize = "18";
+params = {'figure.autolayout':True,
+          'legend.fontsize': fontsize,
+          'figure.figsize': (8, 8),
+         'axes.labelsize': fontsize,
+         'axes.titlesize': fontsize,
+         'xtick.labelsize':fontsize,
+         'ytick.labelsize':fontsize}
+plt.rcParams.update(params)
+
+# Load the data from the space-separated txt file. 
+# This will create a 2D numpy array
+data = np.loadtxt('l01-data.txt')
+
+# Extract columns 1 and 2 (X) and 3 (Y)
+x = data[:, 1:3]
+y = data[:, 3]
+
+# Create a new figure and an axes objects for the subplot
+# We only have one plot here, but it's helpful to be consistent
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# We will sample both X1 and X2 dimensions and evaluate the model
+# at each X1,X2 coordinate in turn. Our model is simply the Y value
+# of the nearest neighbour
+ 
+# Define the resolution of the graph. Then choose 'res' points in
+# each dimension, linearly spaced between min and max
+res = 30
+xspace = np.linspace(0, 80, res)
+yspace = np.linspace(0, 100, res)
+
+# Create a grid of these two sequences
+xx, yy = np.meshgrid(xspace, yspace)
+
+# Manually choose some parameters
+#theta = np.array([0,0,0])
+#theta = np.array([0.00723333,0.30790167,0.31110833])
+theta = np.array([0.00960774,0.39461445,0.3813686 ])
+#theta = np.array([0.01074602,0.42532418,0.39100331])
+
+# Calculate our linear model
+tt = theta[0] + xx*theta[1] + yy*theta[2]
+
+# Now plot these values as a surface. tt represents the predicted Y value 
+# of each X1 and X2 pair
+# We also added a colourmap, so we can match this graph to the 2D one 
+ax.plot_surface(xx, yy, tt, rstride=1, cstride=1, cmap='jet', edgecolor='none',alpha=0.6) 
+
+# then add the original datapoints on top as reference
+ax.scatter(x[:,0], x[:,1], y, color='k', marker='o', s=140)
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+# change the viewing angle so we can actually see what's happening 
+ax.view_init(elev=10., azim=-40)
+
+# Label the axes to make the plot understandable
+ax.set_xlabel('x1 = Height (in)')
+ax.set_ylabel('x2 = Weight (lbs)')
+ax.set_zlabel('y = Cath length (cm)')
+
+# change the numbering on the X1 and X2 axes. At the desired viewing angle,
+# numbers were jumbled together. This cosmetic change makes them readable again
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+plt.show()
+```
+
+
+## Gradient descent: step by step 
+
+Step 3: $\vv{\theta}_3 = [0.011,0.425,0.391]$
+  
+  - $L = 81.78$
+
+ ```{python, out.width="50%", echo=FALSE, warning=FALSE, message=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Create a dictionary to pass to matplotlib
+# This is an easy way to set many parameters at once
+fontsize = "18";
+params = {'figure.autolayout':True,
+          'legend.fontsize': fontsize,
+          'figure.figsize': (8, 8),
+         'axes.labelsize': fontsize,
+         'axes.titlesize': fontsize,
+         'xtick.labelsize':fontsize,
+         'ytick.labelsize':fontsize}
+plt.rcParams.update(params)
+
+# Load the data from the space-separated txt file. 
+# This will create a 2D numpy array
+data = np.loadtxt('l01-data.txt')
+
+# Extract columns 1 and 2 (X) and 3 (Y)
+x = data[:, 1:3]
+y = data[:, 3]
+
+# Create a new figure and an axes objects for the subplot
+# We only have one plot here, but it's helpful to be consistent
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# We will sample both X1 and X2 dimensions and evaluate the model
+# at each X1,X2 coordinate in turn. Our model is simply the Y value
+# of the nearest neighbour
+ 
+# Define the resolution of the graph. Then choose 'res' points in
+# each dimension, linearly spaced between min and max
+res = 30
+xspace = np.linspace(0, 80, res)
+yspace = np.linspace(0, 100, res)
+
+# Create a grid of these two sequences
+xx, yy = np.meshgrid(xspace, yspace)
+
+# Manually choose some parameters
+#theta = np.array([0,0,0])
+#theta = np.array([0.00723333,0.30790167,0.31110833])
+#theta = np.array([0.00960774,0.39461445,0.3813686 ])
+theta = np.array([0.01074602,0.42532418,0.39100331])
+
+# Calculate our linear model
+tt = theta[0] + xx*theta[1] + yy*theta[2]
+
+# Now plot these values as a surface. tt represents the predicted Y value 
+# of each X1 and X2 pair
+# We also added a colourmap, so we can match this graph to the 2D one 
+ax.plot_surface(xx, yy, tt, rstride=1, cstride=1, cmap='jet', edgecolor='none',alpha=0.6) 
+
+# then add the original datapoints on top as reference
+ax.scatter(x[:,0], x[:,1], y, color='k', marker='o', s=140)
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+# change the viewing angle so we can actually see what's happening 
+ax.view_init(elev=10., azim=-40)
+
+# Label the axes to make the plot understandable
+ax.set_xlabel('x1 = Height (in)')
+ax.set_ylabel('x2 = Weight (lbs)')
+ax.set_zlabel('y = Cath length (cm)')
+
+# change the numbering on the X1 and X2 axes. At the desired viewing angle,
+# numbers were jumbled together. This cosmetic change makes them readable again
+# ax.set_xticks([0,40,80])
+# ax.set_yticks([-20,20,60,100])
+plt.show()
+```
+
+## Gradient descent
+
+The loss function plot: 
+
+\bigskip
+
+```{r, out.width="60%"}
+plot.ts(cost_history[1:200], ylab= "Loss", xlab= "iteration", cex.lab=2.5, cex.axis=2.5, cex.main=2.5)
+```
+
+## Next time 
+
+- implementation in Python
+
+- Gaussian distribution
+- linear regression: maximum likelihood (ML) estimation view
+  - why squared error makes sense ?
+  - uncertainty of $\vv{\theta}_{ls}$: its sampling distribution
+- logistic regression 
+  - ML estimation
+  - another gradient based optimisation method: Newton's method
+
+## Suggested reading
+
+
+- ESL chapter 3: 
+  - I find ESL a bit too statistical; but try reading it and see how much you can understand
+- ISL chapter 3
+  - a bit less technical 
+  - the hypothesis testing bits are not essential: we are not learning statistics :-)
+- Mathematics for ML by Marc Deisenroth et. al, 5.1-5.5; 7.1;
+- MLAPP by Kevin Murphy, 7.1-7.3
+  - we will discuss the ML view next time
+- 
+- Hands on ML: chapter 4
+  - I dont know much about this book

@@ -752,14 +752,14 @@ Another view: $f(\vv{x}) = x_1^2 +x_2^2= \vv{x}^T \vv{A} \vv{x}$, where $\vv{A}$
 
   - $\vv{x}^T\vv{Ax}$ is called quadratic form
   - generalisation of quadratic function $f(x) = ax^2 = xax$
-  - the gradient is $\nabla_{\vv{x}} f = 2\vv{A}\vv{x}$ (when $A$ is symmetric)
+  - the gradient is $\nabla_{\vv{x}} f = 2(\vv{A}\vv{x})^T$ (when $A$ is symmetric)
   - the hessian matrix is $\nabla_{\vv{x}}^2 f = 2\vv{A}$
     - $f$ has a maximum if $\vv{A}$ is negative definite ($a$ is negative) 
     - $f$ has a minimum if $\vv{A}$ is positive definite ($a$ is positive)
-  - positive definite (P.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} >0$ for all $x\in R^m$
+  - positive definite (P.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} >0$ for all $\vv{x}\in R^m$
     - $\vv{I}$ is P.D., why ?
     - $f$ has a minimum 
-  - negative definite (N.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} <0$ for all $x\in R^m$
+  - negative definite (N.D.) matrix $\vv{A}$: $\vv{x}^T\vv{Ax} <0$ for all $\vv{x}\in R^m$
 
     
     

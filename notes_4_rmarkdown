@@ -1,0 +1,4 @@
+Note:
+
+Need to comment the following to add number to sections in notes 
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
