@@ -124,8 +124,8 @@
 \newcommand{\vct}{\text{vec}}
 \newcommand{\NN}{\mathcal{NN}}
 \newcommand{\tr}{\text{tr}}
-
-
+\newcommand{\di}[2]{\ensuremath{ #1^{(#2)}}}
+\newcommand{\Di}[2]{\ensuremath{ \vv{#1}^{(#2)}}}
 
 \newcommand{\E}[1]{\ensuremath{\mathbb{E}[#1]}}
 \newcommand{\Var}[1]{\mathrm{Var}[#1]}
@@ -492,7 +492,7 @@ then
 \begin{itemize}
 \tightlist
 \item
-  it is a quadratic form ( a quadratic form is
+  it is a quadratic form (a quadratic form is
   \(\vv{x}^T \vv{A} \vv{x}\): a row vector times a matrix times a column
   vector, the result is a scalar !)
   \[\frac{\partial L}{\partial \vv{e}} \equiv \nabla_{\vv{e}} L = \nabla_{\vv{e}} (\vv{e}^T\vv{I}\vv{e}) = 2(\vv{Ie})^T = 2\vv{e}^{T}\]
