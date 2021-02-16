@@ -6,13 +6,13 @@ date: Spring 2021
 output: 
   beamer_presentation:
     df_print: "kable"
-    keep_tex: true
+    keep_tex: false
 #    toc: true
 #    slide_level: 3
     includes:
       in_header: 
-        - sta-beamer-header-simple.tex
-        - l3.tex
+        - ./preambles/sta-beamer-header-simple.tex
+        - ./preambles/l3.tex
         # - title-page.tex
 #      after_body: ~/Dropbox/teaching/table-of-contents.txt
 bibliography: "ref.bib"
@@ -369,7 +369,7 @@ $\vv{y}= \vv{X\theta}$ is over determined: $m>n$
   
 \begin{figure}
     \centering
-    \includegraphics[width = 0.8\textwidth]{./projview1.png}
+    \includegraphics[width = 0.8\textwidth]{./figs/projview1.png}
  % \caption{Awesome figure}
 \end{figure}  
 
@@ -379,7 +379,7 @@ $\vv{y}= \vv{X\theta}$ is over determined: $m>n$
 \vspace{-0.3cm}
 \begin{figure}
     \centering
-   \includegraphics[width = 0.47\textwidth, trim=1.2cm 0.5cm 0.8cm 0cm, clip]{./projview1.png}  \includegraphics[width = 0.51\textwidth, trim=0.5cm 0.5cm 0.5cm 0cm, clip]{./projview2.png}
+   \includegraphics[width = 0.47\textwidth, trim=1.2cm 0.5cm 0.8cm 0cm, clip]{./figs/projview1.png}  \includegraphics[width = 0.51\textwidth, trim=0.5cm 0.5cm 0.5cm 0cm, clip]{./figs/projview2.png}
  % \caption{Awesome figure}
 \end{figure}  
 
@@ -445,7 +445,7 @@ surf3D(x=M$x, y=M$y, z= z, colkey = FALSE,
     \begin{column}{0.48\textwidth}
       \begin{figure}
     \centering
-    \includegraphics[width = \textwidth]{./gradvecfield.eps}
+    \includegraphics[width = \textwidth]{./figs/gradvecfield.eps}
  % \caption{Awesome figure}
 \end{figure}
     \end{column}
@@ -514,7 +514,7 @@ plt.rcParams.update(params)
 
 # Load the data from the space-separated txt file. 
 # This will create a 2D numpy array
-data = np.loadtxt('l01-data.txt')
+data = np.loadtxt('./data/l01_data.txt')
 
 # Extract columns 1 and 2 (X) and 3 (Y)
 x = data[:, 1:3]
@@ -597,7 +597,7 @@ plt.rcParams.update(params)
 
 # Load the data from the space-separated txt file. 
 # This will create a 2D numpy array
-data = np.loadtxt('l01-data.txt')
+data = np.loadtxt('./data/l01_data.txt')
 
 # Extract columns 1 and 2 (X) and 3 (Y)
 x = data[:, 1:3]
@@ -680,7 +680,7 @@ plt.rcParams.update(params)
 
 # Load the data from the space-separated txt file. 
 # This will create a 2D numpy array
-data = np.loadtxt('l01-data.txt')
+data = np.loadtxt('./data/l01_data.txt')
 
 # Extract columns 1 and 2 (X) and 3 (Y)
 x = data[:, 1:3]
@@ -763,7 +763,7 @@ plt.rcParams.update(params)
 
 # Load the data from the space-separated txt file. 
 # This will create a 2D numpy array
-data = np.loadtxt('l01-data.txt')
+data = np.loadtxt('./data/l01_data.txt')
 
 # Extract columns 1 and 2 (X) and 3 (Y)
 x = data[:, 1:3]

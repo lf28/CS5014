@@ -1,0 +1,67 @@
+---
+title: CS5014 Machine Learning
+subtitle: Lecture 9 Nonlinear models and regularisation
+author: "Lei Fang"
+date: Spring 2021
+output: 
+  beamer_presentation:
+    df_print: "kable"
+    keep_tex: false
+#    toc: true
+#    slide_level: 3
+    includes:
+      in_header: 
+        - ./preambles/sta-beamer-header-simple.tex
+        - ./preambles/l9.tex
+        # - title-page.tex
+#      after_body: ~/Dropbox/teaching/table-of-contents.txt
+classoption: "aspectratio=169"
+bibliography: "ref.bib"
+---
+
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = FALSE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+set.seed(0)
+
+```
+
+
+# Introduction
+
+## Response to last poll
+
+```{r, out.width="80%"}
+knitr::include_graphics("./figs/lec6poll.png")
+```
+
+
+
+## Maths 
+
+Do I need to read all the maths on the slides \textit{during lecture} ?
+
+  - \textbf{NO}! follow the logic is more important
+  - \textit{esp.} when I jump slides (most likely technical details)
+    - e.g. "take the derivative and set it to zero", just believe me for the time being
+    - might left there for your reference (I will make sure it is clear)
+  - catch the key message
+    - the conclusion: e.g. $MLE$ leads to least square
+
+BUT \textbf{YES} verify them after the lecture step by step 
+  
+  - no way to learn CS or maths modules just by attending lectures
+
+Feel free to stop me during the lecture
+
+  - when you cannot follow the logic: highly likely I have messed something up
+  - when the notation is confusing: still possibly my bad
+    - I used $\sigma$ for both sigmoid and variance ($\sigma^2$) of Gaussian
+    - or like $\prod p_i^{I(x=i)}$, if you do not know what $I$ does..
+    

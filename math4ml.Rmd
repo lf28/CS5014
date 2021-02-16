@@ -5,13 +5,13 @@ author: "Lei Fang"
 date: Spring 2021
 output: 
   beamer_presentation:
-    keep_tex: true
+    keep_tex: false
 #    toc: true
 #    slide_level: 3
     includes:
       in_header: 
-        - sta-beamer-header-simple.tex
-        - l2.tex
+        - ./preambles/sta-beamer-header-simple.tex
+        - ./preambles/l2.tex
         # - title-page.tex
 #      after_body: ~/Dropbox/teaching/table-of-contents.txt
 bibliography: "ref.bib"
@@ -738,7 +738,7 @@ surf3D(x=M$x, y=M$y, z= z, colkey = TRUE,
 
 \begin{figure}
     \centering
-    \includegraphics[width = 0.6\textwidth]{./gradvecfield.eps}
+    \includegraphics[width = 0.6\textwidth]{./figs/gradvecfield.eps}
  % \caption{Awesome figure}
 \end{figure}
 

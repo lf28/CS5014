@@ -4,6 +4,28 @@
 \newcounter{example}[section]
 \newenvironment{example}[1][]{\refstepcounter{example}\par\medskip
    \noindent \textbf{Example~\theexample. #1} \rmfamily}{\medskip}
+\newcommand{\di}[2]{\ensuremath{ #1^{(#2)}}}
+\newcommand{\Di}[2]{\ensuremath{ \vv{#1}^{(#2)}}}
+\newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
+\newcommand{\Gaussian}[3]{\ensuremath{\frac{1}{\sqrt{2\pi}#3}
+\text{exp}\left \{-\frac{1}{2#3^2} (#1-#2)^2 \right \}}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\expo}[1]{\ensuremath{\text{exp}\left \{ #1 \right \}}}
+\newcommand{\studentt}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\vv}[1]{\boldsymbol{#1}}
+\newcommand{\Prb}{\ensuremath{\mathbb{P}}}
+\newcommand{\studenttk}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\NIG}{\mathcal{NIG}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\IG}{\mathcal{IG}}
+\newcommand{\IW}{\mathcal{IW}}
+\newcommand{\NNIW}{\mathcal{NNIW}}
+\newcommand{\vct}{\text{vec}}
+\newcommand{\NN}{\mathcal{NN}}
+\newcommand{\tr}{\text{tr}}
+
 
 
 %Numbered environment defined with Newtheorem

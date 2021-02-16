@@ -30,8 +30,10 @@ knitr::opts_chunk$set(webgl = hook_webgl,
 
 A quadratic form is defined as 
 $$x^TAx,$$
-where $x=\begin{bmatrix} x_1 \\x^2\\ \vdots\\x^n \end{bmatrix}$ is a $n\times 1$ (column) vector, $A$ is a $n\times n$ square matrix (the corresponding $i$-th row and $j$-th column entry is $a_{ij}$. Therefore, $x^TAx$ is scalar function of input $x$. According to matrix multiplication rule, the quadratic form can be expanded as 
-$$x^TAx = \sum_{i=1}^n \sum_{j=1}^n a_{ij}x_ix_j$$ essentially all the second order products between $x_ix_j$ and weighed by $a_{ij}$. 
+where $x=\begin{bmatrix} x_1 \\x_2\\ \vdots\\x_n \end{bmatrix}$ is a $n\times 1$ (column) vector, $A$ is a $n\times n$ square matrix (the corresponding $i$-th row and $j$-th column entry is $a_{ij}$. Therefore, $x^TAx$ is a function that maps a vector input $x$ to a scalar: $f:R^n \rightarrow R$. 
+
+According to matrix multiplication rule, the quadratic form can be expanded as 
+$$x^TAx = \sum_{i=1}^n \sum_{j=1}^n a_{ij}x_ix_j$$ essentially the weighted sum of all the second order products between $x_i,x_j$; and the weights are given by $a_{ij}$. 
 
 ```{r, fig.show ="hold", out.width="49%", fig.cap="\\label{fig:surf1} surface plot of a circular paraboloid"}
 library(plot3D)
@@ -51,7 +53,7 @@ v+geom_contour()+coord_fixed()
 ```
 
 \begin{example}
-$f(x) = x_1^2 + x_2^2$ is a quadratic form, as  $$f(x) = x^T\begin{bmatrix} 1,0\\0,1\end{bmatrix}x = x^Tx$$. Its surface plot in $R^3$ and contour plot is show below in Fig~\ref{fig:surf1}. A contour plot shows all the levels sets: \emph{i.e.} all the $x\in R^n$ in the input space such at $f(x) = c$ is a constant. 
+$f(x) = x_1^2 + x_2^2$ is a quadratic form, as  $$f(x) = x^T\begin{bmatrix} 1,0\\0,1\end{bmatrix}x = x^Tx.$$ Its surface plot in $R^3$ and contour plot is show below in Fig~\ref{fig:surf1}. Note that a contour plot shows all the levels sets: \emph{i.e.} all the $x\in R^n$ in the input space such at $f(x) = c$ is a constant. 
 \end{example}
 
 
@@ -110,6 +112,12 @@ v+geom_contour()+coord_fixed()
 ```
 \end{example}
 
+## Definite quadratic forms are distance measures
+
+All three examples above are cases where the quadratic forms have a minimum. It turns out that all definite quadratic forms (either positive or negative definite, see Section \ref{sec:df}), the quadratic forms can be viewed as some forms of distance measure: it measures the distance between $x$ to $0$. Example 1 with $A=I$, it measures the Eclidean distance between $x$ and $0$. For others, the distances are either discounted or expanded at one direction (axis aligned or other off-axis direction). For example, Example 2 with a compressed $x_1$ direction will shorten the distance in that direction by a factor: in other words, you have to travel shorter distance in $x_1$ direction to reach the same height or value of $f$ (comparing with the Eclidean distance). The contour plots show the "adjusted distances". 
+
+For positive definite forms, $f$ is positively correlated with the distance measure: the further away $x$ is from the center $0$, the larger value $f$ takes (so it has a minimum at the centre). For negative definite forms, $f$ is negatively correlated with the distance measure: the further away $x$ is from $0$, the smaller value $f$ takes ($f$ is facing down; so it has a maximum at the centre).
+
 
 
 # Common quadratic forms in machine learning models
@@ -148,28 +156,47 @@ $$\nabla_{{x}} f(x)= x^{T} (A+A^T) = 2x^{T}A$$
 
 ## Hessian of a quadratic form
 
+For a general function $f(x): R^n\rightarrow R$, the Hessian matrix of $f$ is defined as
+$$\nabla_{x}^2f =\begin{bmatrix} \frac{\partial^2f}{\partial x_1^2}& \frac{\partial^2f}{\partial x_1\partial x_2}& \ldots& \frac{\partial^2f}{\partial x_1\partial x_n} \\
+\frac{\partial^2f}{\partial x_2 \partial x_1}& \frac{\partial^2f}{\partial x_2^2}& \ldots& \frac{\partial^2f}{\partial x_2\partial x_n} \\
+\vdots &\vdots & \ddots & \vdots \\
+\frac{\partial^2f}{\partial x_n \partial x_1}& \frac{\partial^2f}{\partial x_n\partial x_2}& \ldots& \frac{\partial^2f}{\partial x_n^2} 
+\end{bmatrix}$$
+
+It can be observed that a Hessian matrix is symmetric. 
+
 The Hessian or gradient of the gradient of $f(x) = x^T A x$ is $$\nabla_{x}^2 f(x) = A^T +A$$
 
-If $A$ is symmetric, the Hessian is $$\nabla_{x}^2 f(x) = 2A$$
+If $A$ is symmetric, the Hessian is $$\nabla_{x}^2 f(x) = 2A.$$
 
-## Maximum and minimum of a quadratic form
+## Maximum and minimum of a quadratic form \label{sec:df}
 
 - If $\nabla_{x}^2 f(x)$ is positive definite, $f(x) = x^TAx$ has a minimum; 
 - If $\nabla_{x}^2 f(x)$ is negative definite, $f(x) = x^TAx$ has a maximum; 
 
-### Positive definite matrix
+\textbf{Positive definite matrix}:
+if $A$ is positive definite, then $x^T A x >0$ for all $x\in R^n$
 
-If matrix $A$ is positive definite, then $x^TAx >0$ for $\forall x \in R^n$
+\textbf{Negative definite matrix}: if $A$ is negative definite, then $x^T A x < 0$ for all $x\in R^n$
+
+You should compare the above results with univariate quadratic function $f(x)=ax^2$. For such a quadratic function, 
+
+- if $f''(x)=2a >0$, then $f$ has a minimum;
+- if $f''(x)=2a <0$, then $f$ has a maximum.
+
+To further understand the connection, you probably need to know 
+$${u}^T \nabla_x^2f(x){u}$$ is the **second directional derivative** of $f$ at direction $u$,
+if ${u} \in R^n$ is a unit vector, i.e. $||{u}||_2^2 = {u}^T{u}=1$. Therefore, the requirement for $A$ to be posisitve definite, it essentially means $f$'s second derivative is possitive at all directions. In other words, the univariate test is positive at all directions, so it is going to be minimum. The logic applies to the negative definite case. 
 
 
-# Positive definite quadratic form
-a multivaraite Gaussian distribution ($k$ dimensional) is
-$$p(x) = (2\pi)^{-\frac{k}{2}} \text{det}(\Sigma)^{-\frac{1}{2}} e^{-\frac{1}{2} (x-\mu)^T\Sigma^{-1}(x-\mu)}$$ 
-  
-  
-  
-  This note lists some important facts about quadratic form. 
+<!-- # Positive definite quadratic form -->
+<!-- a multivaraite Gaussian distribution ($k$ dimensional) is -->
+<!-- $$p(x) = (2\pi)^{-\frac{k}{2}} \text{det}(\Sigma)^{-\frac{1}{2}} e^{-\frac{1}{2} (x-\mu)^T\Sigma^{-1}(x-\mu)}$$  -->
 
-First and foremost, it returns a scalar given an input of vector $x$. 
 
-  $$x^TAx: R^{m}\rightarrow R$$
+
+<!--   This note lists some important facts about quadratic form.  -->
+
+<!-- First and foremost, it returns a scalar given an input of vector $x$.  -->
+
+<!--   $$x^TAx: R^{m}\rightarrow R$$ -->
