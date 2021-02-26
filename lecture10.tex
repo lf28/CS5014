@@ -1,0 +1,1111 @@
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[ignorenonframetext,aspectratio=169]{beamer}
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph:
+\widowpenalties 1 10000
+\raggedbottom
+\setbeamertemplate{part page}{
+\centering
+\begin{beamercolorbox}[sep=16pt,center]{part title}
+  \usebeamerfont{part title}\insertpart\par
+\end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+\centering
+\begin{beamercolorbox}[sep=12pt,center]{part title}
+  \usebeamerfont{section title}\insertsection\par
+\end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+\centering
+\begin{beamercolorbox}[sep=8pt,center]{part title}
+  \usebeamerfont{subsection title}\insertsubsection\par
+\end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\usepackage{hyperref}
+\hypersetup{
+            pdftitle={CS5014 Machine Learning},
+            pdfauthor={Lei Fang},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\newif\ifbibliography
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+%\usepackage[latin1]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{rotating}
+%\setbeamertemplate{caption}[numbered]
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage[normalem]{ulem}
+%\mode<presentation>
+\usepackage{wasysym}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[skins,theorems]{tcolorbox}
+% \usepackage[,dvipsnames]{xcolor}
+\tcbset{highlight math style={enhanced,
+  colframe=red,colback=white,arc=0pt,boxrule=1pt}}
+
+\newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
+\newcommand{\Gaussian}[3]{\ensuremath{\frac{1}{\sqrt{2\pi}#3}
+\text{exp}\left \{-\frac{1}{2#3^2} (#1-#2)^2 \right \}}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\expo}[1]{\ensuremath{\text{exp}\left \{ #1 \right \}}}
+\newcommand{\studentt}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\vv}[1]{\boldsymbol{#1}}
+\newcommand{\Prb}{\ensuremath{\mathbb{P}}}
+\newcommand{\studenttk}[4]{\ensuremath{\mathcal{T}_{#4}(#1,#2,#3)}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\NIG}{\mathcal{NIG}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\IG}{\mathcal{IG}}
+\newcommand{\IW}{\mathcal{IW}}
+\newcommand{\NNIW}{\mathcal{NNIW}}
+\newcommand{\vct}{\text{vec}}
+\newcommand{\NN}{\mathcal{NN}}
+\newcommand{\tr}{\text{tr}}
+\newcommand{\di}[2]{\ensuremath{ #1^{(#2)}}}
+\newcommand{\dd}[1]{\ensuremath{ #1^{(i)}}}
+\newcommand{\Di}[2]{\ensuremath{ \vv{#1}^{(#2)}}}
+
+\newcommand{\E}[1]{\ensuremath{\mathbb{E}[#1]}}
+\newcommand{\Var}[1]{\mathrm{Var}[#1]}
+\newcommand{\Cov}[2]{\mathrm{Cov}[#1,#2]}
+\newcommand{\Cor}[2]{\mathrm{Cor}[#1,#2]}
+
+\usepackage[]{algorithm2e}
+% \setbeamertemplate{navigation symbols}{}
+\usepackage{tcolorbox}
+
+
+%\titlegraphic{\includegraphics[width=0.3\paperwidth]{\string~/Dropbox/teaching/clemson-academic.png}}
+\titlegraphic{\includegraphics[width=0.1\paperwidth]{./figs/crest.pdf}}
+\setbeamertemplate{title page}[empty]
+
+\setbeamerfont{subtitle}{size=\small}
+
+\setbeamercovered{transparent}
+
+\definecolor{clemsonpurple}{HTML}{522D80}
+\definecolor{stablue}{HTML}{0052cc}
+\definecolor{stared}{HTML}{ff4d4d}
+\definecolor{clemsonorange}{HTML}{F66733}
+\newcommand{\empha}[1]{\textbf{\textcolor{stablue}{#1}}}
+\setbeamercolor{frametitle}{fg=stablue,bg=white}
+\setbeamercolor{title}{fg=stablue,bg=white}
+\setbeamercolor{local structure}{fg=stablue}
+\setbeamercolor{section in toc}{fg=stablue,bg=white}
+\setbeamercolor{subsection in toc}{fg=stared,bg=white}
+\setbeamercolor{item projected}{fg=stablue,bg=white}
+\setbeamertemplate{itemize item}{\color{stablue}$\bullet$}
+\setbeamertemplate{itemize subitem}{\color{stablue}\scriptsize{$\bullet$}}
+\let\Tiny=\tiny
+
+%\makeatletter
+%\setbeamertemplate{footline}{%
+%\leavevmode
+%\vbox{\begin{beamercolorbox}[dp=1.25ex,ht=2.75ex]{fg=black}%
+%  \hspace*{1em}\insertsectionhead%
+%  \ifx\insertsubsectionhead\@empty\relax\else$\quad\mid\quad$\insertsubsectionhead\fi :
+%  \end{beamercolorbox}%
+%  }%
+%}
+%\makeatother
+
+\setbeamercolor{footercl}{fg=white,bg=stablue}
+\setbeamerfont{stafont}{size = \large}
+\setbeamerfont{footerfont}{size = \tiny}
+% \makeatother
+% \setbeamertemplate{footline}
+% {
+%   \leavevmode%
+%   \hbox{%
+%   \begin{beamercolorbox}[wd=.5\paperwidth,ht=5ex,dp=1ex, left]{footercl}%
+%     \usebeamerfont*{stafont}\hspace*{1ex}\insertshortinstitute
+%   \end{beamercolorbox}%
+%   \begin{beamercolorbox}[wd=.25\paperwidth,ht=5ex,dp=1ex,center]{footercl}%
+%     \usebeamerfont*{footerfont}\insertshorttitle\hspace*{1ex} \insertframenumber{}
+%   \end{beamercolorbox}%
+%   \begin{beamercolorbox}[wd=.25\paperwidth,ht=5ex,dp=1ex,right]{footercl}%
+%    \includegraphics[height=5ex]{stalogo.png}
+%   \end{beamercolorbox}}%
+%   \vskip0pt%
+% }
+% \makeatletter
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \fontsize{13}{13}\fontfamily{ppl}\selectfont
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{footercl}%
+    \usebeamerfont{author in head/foot}\hspace*{1ex}\insertshortinstitute
+   \end{beamercolorbox}%
+   \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{footercl}%
+    % \hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill\hfill
+    \parbox{.25\paperwidth}{\fontfamily{cmss}\selectfont{\hfill\hfill \usebeamerfont{footerfont}\insertshorttitle~\insertframenumber{}}}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{footercl}%
+    \parbox{.25\paperwidth}{\hfill\includegraphics[height=1cm]{./figs/stalogo.png}}% original: 2ex
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+\setbeamertemplate{navigation symbols}{}
+
+% \AtBeginDocument{\author[L. Fang]{Lei Fang} \institute[www.st-andrews.ac.uk]{School of Computer Science, University of St Andrews}}
+
+% \newcommand{\Ffootline}{%                   %%defines a new command called \Ffootline
+% %\insertshortauthor,                         %%puts the abbreviated form of the author's name in the left corner
+% \insertshorttitle,
+% \insertshortinstitute, 
+% \insertshortdate %%puts the abbreviated form of the author's institution in the middle
+% \hfill
+% \insertsection,
+% \insertframenumber/\inserttotalframenumber} %%includes the current slide number over the total slide number in the right corner
+% \setbeamertemplate{footline}{%              %%sets the options for the footline
+% \usebeamerfont{structure}                   %%uses the same fonts adopted for the structure of the presentation 
+% \Tiny\hspace*{4mm} \Ffootline \hspace{4mm}  %%sets the size of the font to Tiny and includes the content of the \Ffootline
+% }                                           %%command leaving a margin of 4mm to the right and left of the content.
+
+
+
+\AtBeginPart{}
+\AtBeginSection{}
+\AtBeginSubsection{}
+\AtBeginSubsubsection{}
+\setlength{\emergencystretch}{0em}
+\setlength{\parskip}{0pt}
+\AtBeginDocument{\author[L. Fang]{Lei Fang} \title[L10 Regularisation]{CS5014 Machine Learning}\institute[www.st-andrews.ac.uk]{School of Computer Science, University of St Andrews}}
+\newenvironment{cols}[1][]{}{}
+
+\newenvironment{col}[1]{\begin{minipage}{#1}\ignorespaces}{%
+\end{minipage}
+\ifhmode\unskip\fi
+\aftergroup\useignorespacesandallpars}
+
+\def\useignorespacesandallpars#1\ignorespaces\fi{%
+#1\fi\ignorespacesandallpars}
+
+\makeatletter
+\def\ignorespacesandallpars{%
+  \@ifnextchar\par
+    {\expandafter\ignorespacesandallpars\@gobble}%
+    {}%
+}
+\makeatother
+
+\title{CS5014 Machine Learning}
+\providecommand{\subtitle}[1]{}
+\subtitle{Lecture 10 Regularisation}
+\author{Lei Fang}
+\date{Spring 2021}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{Some responses}
+\protect\hypertarget{some-responses}{}
+
+What one hot encoding actually does ?
+
+\begin{itemize}
+\tightlist
+\item
+  regression ?
+\item
+  classification ?
+\end{itemize}
+
+\bigskip
+
+Why Newton's step use Hessian's inverse \(\vv{H}^{-1}\) ?
+
+\[\vv{\theta}_{t+1} \leftarrow \vv{\theta}_t - \vv{H}_t^{-1}\vv{g}_t\]
+
+\begin{itemize}
+\item
+  long story: it optimise local approximated quadratic function
+\item
+  short story: inversely related to curvature (H measures curvature in
+  higher dimensions)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    larger curvature (pointy and curvy) \(\Rightarrow\) shorter steps;
+  \item
+    smaller curvature (flatter)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Today's topic}
+\protect\hypertarget{todays-topic}{}
+
+Nonlinear model
+
+\begin{itemize}
+\tightlist
+\item
+  fixed basis models
+\end{itemize}
+
+Regularisation
+
+\begin{itemize}
+\tightlist
+\item
+  \(l_2\) penalty: ridge regression
+\item
+  \(l_1\) penalty: lasso regression
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Towards nonlinear models: regression}
+\protect\hypertarget{towards-nonlinear-models-regression}{}
+
+\begin{cols}
+
+\begin{col}{0.70\textwidth}
+
+For linear regression:
+
+\[ P({y}|{\vv{x}}, \vv{\theta}) = N(\underbrace{f({\vv{x}};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}: \text{ linear}}, \sigma^2) \;\text{or }\; y= \underbrace{f(\vv{x};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}} +\vv{\epsilon}, \;\; \dd{\epsilon}\sim N(0, \sigma^2)\]
+
+The regression function \(f\) is assumed linear
+\[f(\vv{x};\vv{\theta}) = \vv{\theta}^T{\vv{x}}\]
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{i.e.} fitting lines/hyperplanes
+\item
+  in real life, a lot of relationships are not linear
+\item
+  and we do not know what \(f(\vv{x})\) should look like !
+\end{itemize}
+
+\end{col}
+
+\begin{col}{0.30\textwidth}
+
+\begin{center}\includegraphics[height=0.42\textheight]{lecture10_files/figure-beamer/unnamed-chunk-1-1} \end{center}
+
+\begin{center}\includegraphics[height=0.45\textheight]{lecture10_files/figure-beamer/unnamed-chunk-2-1} \end{center}
+
+\end{col}
+
+\end{cols}
+
+\end{frame}
+
+\begin{frame}{Towards nonlinear models: classification}
+\protect\hypertarget{towards-nonlinear-models-classification}{}
+
+\begin{cols}
+
+\begin{col}{0.70\textwidth}
+
+For logistic regression:
+
+\[P({y}|{\vv{x}}, \vv{\theta}) = \text{Ber}(\sigma(\underbrace{f(\vv{x};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}: \text{ linear}})= \sigma^{{y}}(1-\sigma)^{(1-{{y}})}\]
+To predict the label \(y\) for any input \(\vv{x}\):
+\begin{align*}\footnotesize
+{y}=1\; \text{if }P({{y}}=1|{\vv{x}}, \vv{\theta}) > 0.5\;\;  {y}=0\; \text{if otherwise}
+\end{align*}
+
+Note that the \textbf{decision boundary} is linear (hyperplane or line)
+
+\[P({{y}}=1|{\vv{x}}, \vv{\theta}) = 0.5 \Rightarrow \vv{\theta}^T\vv{x} =0\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(i.e.\) separating data by lines/hyperplanes
+\item
+  in reality, we do know what \(f\) should be; plane or a more general
+  surface
+\end{itemize}
+
+\end{col}
+
+\begin{col}{0.30\textwidth}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-3-1} \end{center}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-4-1} \end{center}
+
+\end{col}
+
+\end{cols}
+
+\end{frame}
+
+\begin{frame}{Nonlinear classification data}
+\protect\hypertarget{nonlinear-classification-data}{}
+
+\begin{cols}
+
+\begin{col}{0.70\textwidth}
+
+What if your data looks like this ?
+
+\begin{itemize}
+\tightlist
+\item
+  no linear descision boudary or
+  \(f(\vv{x};\vv{\theta}) = \vv{\theta}^T\vv{x}\) seems making much
+  sense
+\item
+  but a non-linear boundary makes more sense
+
+  \begin{itemize}
+  \tightlist
+  \item
+    the classification rule is actually
+    \(||\vv{x}||_2^2 = x_1^2+x_2^2\leq 1\)
+  \item
+    distance to \(\vv{0}\) is less than 1
+  \item
+    the boundary is a circle
+  \item
+    \footnotesize I know it because I generated the data
+  \end{itemize}
+\end{itemize}
+
+\end{col}
+
+\begin{col}{0.30\textwidth}
+
+\begin{center}\includegraphics[height=0.45\textheight]{lecture10_files/figure-beamer/unnamed-chunk-5-1} \end{center}
+
+\begin{center}\includegraphics[height=0.45\textheight]{lecture10_files/figure-beamer/unnamed-chunk-6-1} \end{center}
+
+\end{col}
+
+\end{cols}
+
+\end{frame}
+
+\begin{frame}{Nonlinear model: polynomial model}
+\protect\hypertarget{nonlinear-model-polynomial-model}{}
+
+\begin{center}\includegraphics[height=0.4\textheight]{lecture10_files/figure-beamer/figures-side-1} \includegraphics[height=0.4\textheight]{lecture10_files/figure-beamer/figures-side-2} \end{center}
+
+Both models are actually 2nd order polynomial:
+\footnotesize\[f(\vv{x};\vv{\beta}) = \beta_0+ \beta_1x_1+ \beta_2x_2 +\beta_3x_1x_2+\beta_4x_1^2 +\beta_5x_2^2 =\sum_{k=0}^5 \beta_j \phi_j(\vv{x})=\vv{\beta}^T\vv{\phi}(\vv{x})\]
+
+\normalsize
+
+\begin{itemize}
+\item
+  where
+  \[\footnotesize \vv{\phi}(\vv{x}) = [\underbrace{1}_{\phi_0(\vv{x})}, \underbrace{x_1}_{\phi_1(\vv{x})}, \underbrace{x_2}_{\phi_2(\vv{x})}, \underbrace{x_1x_2}_{\phi_3(\vv{x})}, \underbrace{x_1^2}_{\phi_4(\vv{x})}, \underbrace{x_2^2}_{\phi_5(\vv{x})}]^T\]
+\item
+  it expands \(\vv{x}=[1, x_1, x_2]^T\) to a larger vector
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Nonlinear response from linear model}
+\protect\hypertarget{nonlinear-response-from-linear-model}{}
+
+Note that you get a free nonlinear model by transforming the input
+\(\vv{X}\)
+\[\footnotesize \vv{X} = \begin{bmatrix} 1& \di{x}{1}_1& \di{x}{1}_2 \\
+1& \di{x}{2}_1& \di{x}{2}_2 \\
+\vdots& \vdots& \vdots \\
+1 &  \di{x}{m}_1& \di{x}{m}_2
+\end{bmatrix} \Rightarrow \vv{\Phi} =\begin{bmatrix} \vv{\phi}(\Di{x}{1}) \\
+\vv{\phi}(\Di{x}{2}) \\
+\vdots \\
+\vv{\phi}(\Di{x}{m})
+\end{bmatrix} = \begin{bmatrix} 1& \di{x}{1}_1& \di{x}{1}_2& \di{x}{1}_1 \di{x}{1}_2& (\di{x}{1}_1)^2 & (\di{x}{1}_2)^2\\
+1& \di{x}{2}_1& \di{x}{2}_2& \di{x}{2}_1 \di{x}{2}_2& (\di{x}{2}_1)^2 & (\di{x}{2}_2)^2\\
+\vdots& \vdots& \vdots & \vdots & \vdots & \vdots\\
+1& \di{x}{m}_1& \di{x}{m}_2& \di{x}{m}_1 \di{x}{m}_2& (\di{x}{m}_1)^2 & (\di{x}{m}_2)^2\\
+\end{bmatrix}\]
+
+\begin{itemize}
+\tightlist
+\item
+  remember superscript \((i)\) index data samples; and subscript index
+  features
+\item
+  \(\vv{\Phi}\) is a \(m\times 6\) matrix
+\end{itemize}
+
+\normalsize
+
+The expanded model for regression is
+\[\vv{y} = \vv{\Phi}\vv{\beta} + \vv{\epsilon}\]
+
+\begin{itemize}
+\tightlist
+\item
+  still a linear model w.r.t \(\vv{\phi}\), the expanded new features
+\item
+  all existing results apply: gradient descent, normal equation (replace
+  \(\vv{X}\) with \(\vv{\Phi}\))
+  \[\vv{\beta}_{ls} =(\vv{\Phi}^T\vv{\Phi})^{-1}\vv{\Phi}^T\vv{y}\]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Polynomial basis function expansion}
+\protect\hypertarget{polynomial-basis-function-expansion}{}
+
+Consider predictors with \(n=2\) input features,
+\[\vv{x} = [1, {x}_1, {x}_2]^T \text{ \footnotesize (1 is dummy variable)}\]
+
+Second order polynormial, \(\vv{\phi}\) expands \(\vv{x}\) to
+\[\vv{\phi}(\vv{x}) = [{1}, {x_1}, {x_2}, {x_1x_2}, {x_1^2}, {x_2^2}]^T;\]
+
+\begin{itemize}
+\tightlist
+\item
+  what if the input size is \(n\) rather than 2?
+  \((1+n+\binom{n}{2}+n) \in O(n^2)\)
+\end{itemize}
+
+Third order polynormial, it becomes
+
+\[\vv{\phi}(\vv{x}) = [{1}, {x_1}, {x_2}, {x_1x_2}, {x_1^2}, {x_2^2}, \underbrace{x_1x_2^2, x_1^2x_2, x_1^3, x_2^3}_{\text{3-rd order terms}}]^T\]
+Higher order leads to larger number of basis; it may not necessary be a
+good thing though
+
+\end{frame}
+
+\begin{frame}{Example: polynormial fitting}
+\protect\hypertarget{example-polynormial-fitting}{}
+
+True regression function: \textcolor{blue}{$\mathbf{f=\sin(x)}$}; and
+\(\di{y}{i}= \sin(\di{x}{i}) + \di{\epsilon}{i}\),
+\(\epsilon \sim N(0, 0.2^2)\) \vspace{0.5cm}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-8-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Other basis function \(\vv{\phi}\)}
+\protect\hypertarget{other-basis-function-vvphi}{}
+
+\(\vv{\phi}{(\vv{x})}\) can take other forms
+
+\begin{itemize}
+\tightlist
+\item
+  each \(\phi_k(\vv{x})\) is a \(R^n\rightarrow R\) transformation;
+
+  \begin{itemize}
+  \tightlist
+  \item
+    so \(\vv{\phi}\) is a \(R^n\rightarrow R^p\) transformation:
+    previous example: \(n=3\), \(p=6\)
+  \item
+    obviously, if \(\vv{\phi}(\vv{x}) = \vv{I}\vv{x}\), we recover
+    ordinary linear regression
+
+    \begin{itemize}
+    \tightlist
+    \item
+      it is a specific case of basis expansion model
+    \end{itemize}
+  \end{itemize}
+\item
+  2nd order polynomial: \(\phi_k(\vv{x}) = x_j^2\), \(x_jx_{j'}\),
+  \(x_j\), or 1; for \(k=1\ldots p\) 
+\item
+  \(\phi_k(x) = \log(x), \sqrt{x}\) can take other (literally any)
+  nonlinear forms
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Fixed basis models}
+\protect\hypertarget{fixed-basis-models}{}
+
+Fixed basis model assumes
+\[f(\vv{x};\vv{\beta})=\sum_{k=0}^{p-1} {\beta}_k {\phi}_k(\vv{x})= \vv{\beta}^T\vv{\phi}(\vv{x})\]
+
+\begin{itemize}
+\tightlist
+\item
+  ``fixed'' because the basis functions need to be manually specified
+
+  \begin{itemize}
+  \tightlist
+  \item
+    the contrary is adaptive basis (the basis are learnt)
+  \end{itemize}
+\item
+  still linear w.r.t each new feature input \(\phi_k\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    all linear learning results apply to \(\vv{\beta}\)
+  \end{itemize}
+\item
+  no longer linear in the orginal input \(\vv{x}\)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Two popular basis in ML literature}
+\protect\hypertarget{two-popular-basis-in-ml-literature}{}
+
+In traditional Machine Learning literature, radial basis function (RBF)
+and sigmoid (or ``tanh'') are popular
+
+\[\underbrace{\phi_k(\vv{x}) = \exp{(-\frac{||\vv{x}-\vv{\mu}_k||_2^2}{2s^2})}}_{\text{radial basis}}, \;\; \underbrace{\phi_k(x) = \frac{1}{1+\exp{(-\frac{{x}-{\mu}_k}{s}})}}_{\text{sigmoid basis}}\]
+
+\begin{itemize}
+\tightlist
+\item
+  they are location based: depending on \(\mu\); while polynomial basis
+  are not (lower left)!
+\item
+  very general basis and can fit various different models
+\end{itemize}
+
+\begin{center}\includegraphics[height=0.43\textheight]{./figs/Figure3_1a} \includegraphics[height=0.43\textheight]{./figs/Figure3_1b} \includegraphics[height=0.43\textheight]{./figs/Figure3_1c} \end{center}
+
+\end{frame}
+
+\begin{frame}{Example: radial basis function (RBF) with varying number
+of basis}
+\protect\hypertarget{example-radial-basis-function-rbf-with-varying-number-of-basis}{}
+
+True regression function: \textcolor{blue}{$\mathbf{f=\sin(x)}$}; and
+\(\di{y}{i}= \sin(\di{x}{i}) + \di{\epsilon}{i}\),
+\(\epsilon \sim N(0, 0.2^2)\)
+
+More RBF basis (dashed gray lines) fits better; location \(\mu_k\)
+matter (\(p=3\) is an (unlucky) example);
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-10-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Example: radial basis function (RBF) with varying scale
+\(s\)}
+\protect\hypertarget{example-radial-basis-function-rbf-with-varying-scale-s}{}
+
+Smaller scale \(s\) \(\Rightarrow\) wiggly predictions;
+
+Large scale \(s\) \(\Rightarrow\) flatter predictions, not good either !
+(\(p=10\) basis for all four cases)
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-11-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Example: sigmoid basis with varying number of basis}
+\protect\hypertarget{example-sigmoid-basis-with-varying-number-of-basis}{}
+
+More basis (more locations \(\mu_k\)) fits data better again
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-12-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Example: sigmoid basis with varying scale \(s\)}
+\protect\hypertarget{example-sigmoid-basis-with-varying-scale-s}{}
+
+Smaller scale \(s\) \(\Rightarrow\) step functions; Large scale \(s\)
+\(\Rightarrow\) smoother predictions (\(p=11\) basis for all four cases)
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-13-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Interpretation of fixed basis models}
+\protect\hypertarget{interpretation-of-fixed-basis-models}{}
+
+In abstract vector space, functions are vectors, say \(\phi_k(\vv{x})\)
+
+\[f(\vv{x};\vv{\beta})= \sum_{k=0}^{p-1} {\beta}_k {\phi}_k(\vv{x})\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(f\): a linear combination of vectors
+  \(\{\phi_0,\phi_1,\ldots,\phi_p\}\)
+\item
+  e.g. \(f(x) = \beta_0 +\beta_1x\) is a linear combination of two
+  functions (vectors): \(\phi_0(x)= 1\) and \(\phi_1(x) =x\)
+  \[f(x) = \beta_0 \phi_0(x)+\beta_1\phi_1(x)\]
+\item
+  linear regression: \(\hat{f}\in \text{span}(\{1, x\})\) with
+  \(\hat{\beta}_0, \hat{\beta}_1\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    projection of \(f\) to the subspace
+  \end{itemize}
+\item
+  larger functional space \(\text{span}(\{\phi_k(x)\}_1^p)\) (\(p\)
+  increases) \(\Rightarrow\) better fit
+
+  \begin{itemize}
+  \tightlist
+  \item
+    until \(f\) exactly lives in the span (which can be bad!)
+  \item
+    regardless of \(\phi_k\)'s shapes as long as nonlinear and
+    ``different'' (linear independent)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Flexibility resolves underfitting but introduce
+overfitting}
+\protect\hypertarget{flexibility-resolves-underfitting-but-introduce-overfitting}{}
+
+Training loss:
+\[\footnotesize L(\vv{\beta}) = \sum_{i=1}^m (\dd{y} - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2\]
+
+More basis functions (\(p\) increases) \(\Rightarrow\) flexible model
+(larger functional subspace)
+
+\begin{itemize}
+\tightlist
+\item
+  MLE loss (squared error in training) uniformly decreases
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-16-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Classification example: polynomial basis}
+\protect\hypertarget{classification-example-polynomial-basis}{}
+
+\begin{cols}
+
+\begin{col}{0.30\textwidth}
+
+The training NLL drops
+
+\footnotesize
+
+\begin{itemize}
+\tightlist
+\item
+  possible to achieve 100\% training accuracy
+\item
+  regardless of dataset
+\item
+  just keep expanding
+\end{itemize}
+
+\end{col}
+
+\begin{col}{0.70\textwidth}
+
+\begin{center}\includegraphics[height=0.87\textheight]{lecture10_files/figure-beamer/unnamed-chunk-17-1} \end{center}
+
+\end{col}
+
+\end{cols}
+
+\end{frame}
+
+\begin{frame}{Flexibility resolves underfitting but introduce
+overfitting (RBF example)}
+\protect\hypertarget{flexibility-resolves-underfitting-but-introduce-overfitting-rbf-example}{}
+
+The problem applies to all basis (no matter what shape)
+
+\begin{itemize}
+\tightlist
+\item
+  as long as you expands the basis \(\Rightarrow\) smaller training
+  error
+\item
+  MLE always favour flexible models
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-18-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Testing results reveals severe overfitting}
+\protect\hypertarget{testing-results-reveals-severe-overfitting}{}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-19-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Regularisation: ridge regression}
+\protect\hypertarget{regularisation-ridge-regression}{}
+
+For linear regression, we add a \(l_2\) norm penalty to the loss
+
+\[L_{\text{ridge}}(\vv{\beta}) = \underbrace{\sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2}_{\text{previous NLL loss}} + \lambda \underbrace{\vv{\beta}^T\vv{\beta}}_{L_2 \text{ penalty}}\]
+
+\begin{itemize}
+\tightlist
+\item
+  as NLL (squared error loss) term always favour flexible models
+\item
+  we add a penalty term:
+  \(\vv{\beta}^T\vv{\beta} = ||\vv{\beta}||_2^2\); its \(l_2\) norm
+\item
+  large \(\vv{\beta}\) \(\Rightarrow\) higher penalty
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ``regularise'' the value of \(\vv{\beta}\): large value of
+    \(\vv{\beta}\) is discouraged
+  \end{itemize}
+\item
+  large \(\lambda\) \(\Rightarrow\) large penalty: controls the penalty
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Learning of ridge regression}
+\protect\hypertarget{learning-of-ridge-regression}{}
+
+Ridge regression has closed form solution (no surprise: still a
+quadratic function of \(\vv{\beta}\)):
+
+\[ \vv{\beta}_{\text{ridge}} = \argmin_{\vv{\beta}} \sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2 + \lambda \vv{\beta}^T\vv{\beta}=  \argmin_{\vv{\beta}} \underbrace{(\vv{y}-\vv{\Phi\beta})^T(\vv{y}-\vv{\Phi\beta}) + \lambda \vv{\beta}^T\vv{\beta}}_{L_{\text{ridge}}(\vv{\beta})}\]
+Take the derivative
+
+\begin{align*}
+\nabla_{\vv{\beta}} L_{\text{ridge}}= -2(\vv{y}-\vv{\Phi\beta})^T\vv{\Phi} + 2\lambda \vv{\beta}^T\;\;\;\;\;\; (\footnotesize \text{note } \nabla \vv{\beta}^T\vv{\beta} = 2\vv{\beta}^T)
+\end{align*}
+
+And set it to zero \begin{align*}
+&-2(\vv{y}-\vv{\Phi\beta})^T\vv{\Phi} + 2\lambda \vv{\beta}^T ={\vv{0}} \Rightarrow \vv{\Phi}^T\vv{\Phi}\vv{\beta} + \lambda \vv{\beta} = \vv{\Phi}^T\vv{y} \\
+&\Rightarrow (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I}) \vv{\beta} = \vv{\Phi}^T\vv{y}\;\;\;\;\;\; (\footnotesize \text{note } \lambda \vv{\beta} = \lambda\vv{I}_{p\times p}\vv{\beta}) \\
+&\Rightarrow \vv{\beta}_{\text{ridge}} = (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I})^{-1}\vv{\Phi}\vv{y}
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Learning for logistic regression (with \(l_2\) penalty)}
+\protect\hypertarget{learning-for-logistic-regression-with-l_2-penalty}{}
+
+Similarly, we can derive the results for logistic regression (\(l_2\)
+penalty)
+
+\[\vv{\beta}_{\text{ridge}}=\argmin_{{\vv{\beta}}} \underbrace{-\left(\sum_{i=1}^m  \dd{y} \log \sigma^{(i)}+(1-\dd{y}) \log (1-\sigma^{(i)})\right )}_{\text{Negative log likelihood}} + \underbrace{\lambda \vv{\beta}^T\vv{\beta}}_{l_2 \text{ penalty}}\]
+The gradient is
+\[\nabla_{\vv{\beta}} L_{\text{ridge}} = \underbrace{-(\vv{y}-\sigma(\vv{\Phi\beta}))^T\vv{\Phi}}_{\text{same as before but negated}} + \underbrace{2\lambda \vv{\beta}^T}_{\nabla\text{penalty}} \;\;\; \footnotesize (\text{I am abusing the notation for } \sigma \text{ as before})\]
+
+The Hessian is
+\[H_{\text{ridge}} = -\vv{X}^T\vv{D}\vv{X}+\lambda\vv{I}\]
+
+\begin{itemize}
+\tightlist
+\item
+  ``-'': minimise the negative LL (directional curvature is bending
+  upwards)
+\item
+  check lecture 6 for \(\vv{D}\)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Polynomial basis regression (28 basis) with
+\(l_2\) penalty}
+\protect\hypertarget{example-polynomial-basis-regression-28-basis-with-l_2-penalty}{}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-20-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Example: Radial basis regression (28 basis) with \(l_2\)
+penalty}
+\protect\hypertarget{example-radial-basis-regression-28-basis-with-l_2-penalty}{}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-21-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{\(l_2\) penalty in practice}
+\protect\hypertarget{l_2-penalty-in-practice}{}
+
+We do not penalise \(\beta_0\) (intercept), \(\vv{I}_{p\times p}\) is
+usually replaced with
+\(\vv{I}_{p\times p}'= \begin{bmatrix}\textcolor{red}{0}& 0&\ldots& 0 \\ 0&1&\ldots& 0 \\ 0&0&\ldots& 0 \\ 0&0&\ldots& 1\end{bmatrix}\)
+
+!!! Ridge regression is sensitive to the way you scale your data !
+
+\begin{itemize}
+\tightlist
+\item
+  should consider transformation that make the \(l_2\) norm to 1:
+  standardisation (columns of \(\vv{\Phi}\)'s norm is 1, i.e.
+  \(||\vv{\phi}_k||_2=1\))
+\item
+  other scaling may not produce optimal result
+\item
+  sk-learn use \(l_2\) penalty by default for logistic regression
+
+  \begin{itemize}
+  \tightlist
+  \item
+    for numerical stability reason (remember logistic regression's
+    matrix inversion?)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Let's demystify what ridge regression does}
+\protect\hypertarget{lets-demystify-what-ridge-regression-does}{}
+
+\[\vv{\beta}_{\text{ridge}} = (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I})^{-1}\vv{\Phi}\vv{y}\]
+
+\begin{itemize}
+\tightlist
+\item
+  obviously, \(\lambda \rightarrow 0\),
+  \(\vv{\beta}_{\text{ridge}} \rightarrow \vv{\beta}_{\text{ml}}\)
+  (which is \(\vv{\Phi}^T\vv{\Phi})^{-1}\vv{\Phi}\vv{y}\))
+\item
+  \(\lambda \rightarrow \infty\), assume \(\vv{\Phi}\) are formed by
+  orthogonormal basis (columns), i.e.
+  \(\vv{\Phi}^T\vv{\Phi}=\vv{I}_{p\times p}\)
+  \[\vv{\beta}_{\text{ridge}} = (\vv{I}+\lambda\vv{I})^{-1} \vv{\Phi y} = \frac{1}{\lambda+1} \vv{\Phi y}\]
+  \(\vv{\beta} \rightarrow \vv{0}\) when \(\lambda \rightarrow \infty\)
+\item
+  how about those sane \(\lambda\)?
+  \[\vv{\beta}_{\text{ridge}} =\frac{1}{\lambda+1}\vv{\Phi}\vv{y}= \frac{1}{\lambda+1}\underbrace{(\vv{\Phi}^T\vv{\Phi})^{-1}}_{ \vv{I}^{-1}=\vv{I}}\vv{\Phi}\vv{y}= \underbrace{\frac{1}{\lambda+1}}_{\text{btw }[0, 1]} \vv{\beta}_{\text{ml}} \]
+  it shrinks the ML estimator by some percentage.
+\end{itemize}
+
+\footnotesize Orthogonormal basis are common: e.g.~Fourier basis. If
+\(\vv{\Phi}\) is not, the result is still similar: just replace 1 with
+the eigen value of \(\vv{\Phi}^T\vv{\Phi}\)
+
+\end{frame}
+
+\begin{frame}{Example}
+\protect\hypertarget{example}{}
+
+\(\lambda \rightarrow 0\) (to the left):
+\(\vv{\beta}_{\text{ridge}} \rightarrow \vv{\beta}_{\text{ml}}\)
+
+\(\lambda \rightarrow \infty\) (to the right):
+\(\vv{\beta}_{\text{ridge}} \rightarrow \vv{0}\)
+
+other \(\lambda\): somewhere in between; being shrinked by a percentage
+\vspace{-0.5cm}
+
+\begin{center}\includegraphics[width=0.38\linewidth]{./figs/lec10_ridge} \end{center}
+
+\footnotesize taken from An introduction to statistical learning;
+Chapter 6, James et al.
+
+\end{frame}
+
+\begin{frame}{Lasso regression \(l_1\) penalty}
+\protect\hypertarget{lasso-regression-l_1-penalty}{}
+
+There is another popular choice for penalty: \(l_1\) norm
+
+\[L_{\text{lasso}}(\vv{\beta}) = \underbrace{\sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2}_{\text{previous NLL loss}} + \lambda \underbrace{||\vv{\beta}||_1}_{l_1 \text{ penalty}}\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(l_1\) norm: \(||\vv{x}||_1 = \sum_{j=1}^n |x_j|\), \(l_2\) norm:
+  \(||\vv{x}||_2^2 = \sum_{j=1}^n x_j^2= \vv{x}^T\vv{x}\)
+\item
+  ridge shrinks (discount) the ML estimator by some ratio:
+  \(\beta_k^{\text{ridge}} = \delta \beta_k^{\text{ml}}\)
+  (\(0< \delta <1\))
+\item
+  lasso directly shut them \(\beta_k^{\text{lasso}} =0\)
+\item
+  why though?
+\end{itemize}
+
+\begin{cols}
+
+\begin{col}{0.60\textwidth}
+
+Assume applying gradient descent and \(x \rightarrow 0^+\)
+
+\[\nabla_x l_1(x) = -1; \;\;\; \nabla_x l_1(x) = -x\]
+
+Penalty \(l_1\) is constantly (strong); but \(l_2\) diminishes
+
+\end{col}
+
+\begin{col}{0.40\textwidth}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-23-1} \end{center}
+
+\end{col}
+
+\end{cols}
+
+\end{frame}
+
+\begin{frame}{Example: Radial basis regression (28 basis) with \(l_1\)
+penalty}
+\protect\hypertarget{example-radial-basis-regression-28-basis-with-l_1-penalty}{}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-24-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Compare \(l_1\) and \(l_2\) penalty}
+\protect\hypertarget{compare-l_1-and-l_2-penalty}{}
+
+Compare and contrast ridge and lasso: (\(\lambda\) has similar effect,
+i.e.~regularisation)
+
+\begin{itemize}
+\tightlist
+\item
+  ridge shrinks the estimator by some percentage (smooth curve)
+\item
+  Lasso more black and white (feature selection + learning)
+\end{itemize}
+
+\vspace{-0.8cm}
+
+\begin{center}\includegraphics[width=0.38\linewidth]{./figs/lec10_ridge} \includegraphics[width=0.38\linewidth]{./figs/lec10_lasso} \end{center}
+
+\footnotesize taken from An Introduction to Statistical Learning by
+James et al.\\
+
+\end{frame}
+
+\begin{frame}{Compare \(l_1\) and \(l_2\) penalty}
+\protect\hypertarget{compare-l_1-and-l_2-penalty-1}{}
+
+Consider \(\vv{X}\) is a \(m=100\), \(n=100\) (features) matrix sampled
+from Gaussian (\(N(0,1)\)) \(\di{y}{i}= \di{x}{i}_1 + \epsilon\);
+\(\epsilon \sim N(0, \sigma^2=0.2^2)\)
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-26-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{The full path}
+\protect\hypertarget{the-full-path}{}
+
+\begin{center}\includegraphics[width=1\linewidth]{lecture10_files/figure-beamer/unnamed-chunk-27-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Another view: regularisation is MAP estimation}
+\protect\hypertarget{another-view-regularisation-is-map-estimation}{}
+
+Regularisation are just Maximum A Posteriori (MAP) estimator
+
+\[P(\vv{\beta}|\vv{\Phi}, \vv{y}) \propto \underbrace{P(\vv{y}|\vv{\beta}, \vv{\Phi})}_{\text{Likelihood}} \underbrace{P(\vv{\beta})}_{\text{Prior}}\]
+
+MAP estimation maximise the posterior instead
+\[\vv{\beta}_{\text{MAP}} = \argmax_{\vv{\beta}}  P(\vv{\beta}|\vv{\Phi}, \vv{y})\]
+
+Why?
+\[\log P(\vv{\beta}|\vv{\Phi}, \vv{y}) \propto \log {P(\vv{y}|\vv{\beta}, \vv{\Phi})}+ \log  {P(\vv{\beta})}\]
+
+if we assume \(P(\vv{\beta}) = N(0, \gamma \vv{I})\) \footnotesize (a
+multivariate Gaussian with diagonal covariance)
+\[\normalsize \log P(\vv{\beta}) = C - \frac{1}{2\gamma}\vv{\beta}^T\vv{\beta} \]
+\[\normalsize \text{Therefore: } \vv{\beta}_{\text{MAP}} =\vv{\beta}_{\text{ridge}}\]
+
+\end{frame}
+
+\begin{frame}{Suggested reading}
+\protect\hypertarget{suggested-reading}{}
+
+\begin{itemize}
+\tightlist
+\item
+  MLAPP 7.5, 13.3, 13.4*
+\item
+  ESL 3.4
+\item
+  interesting paper*: A comparison of numerical optimizers for logistic
+  regression by Thomas Minka.
+  \url{https://tminka.github.io/papers/logreg/minka-logreg.pdf}
+\end{itemize}
+
+\bigskip
+
+\small Exercise for this lecture (you can discuss it with me in lab
+session or with your classmates)
+
+ESL 3.12 Show that the ridge regression estimatees can be obtained by
+ordinary least squares regression on an augmented data set. We augment
+the centered matrix \(\vv{X}\) with p additional rows
+\(\sqrt{\lambda}\vv{I}\), and augment \(y\) with p zeros. By introducing
+artificial data having response zero, the fitting forces a shrinkage.
+
+\end{frame}
+
+\end{document}

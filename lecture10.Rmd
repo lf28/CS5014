@@ -1,0 +1,1461 @@
+---
+title: CS5014 Machine Learning
+subtitle: Lecture 10 Regularisation
+author: "Lei Fang"
+date: Spring 2021
+output: 
+  beamer_presentation:
+    df_print: "kable"
+    keep_tex: true
+#    toc: true
+#    slide_level: 3
+    includes:
+      in_header: 
+        - ./preambles/sta-beamer-header-simple.tex
+        - ./preambles/l10.tex
+        - ./preambles/columns.tex
+        # - title-page.tex
+#      after_body: ~/Dropbox/teaching/table-of-contents.txt
+classoption: "aspectratio=169"
+bibliography: "ref.bib"
+---
+
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = FALSE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+set.seed(0)
+
+sigmoid <- function(x){
+  1/(1+exp(-x))
+}
+```
+
+## Some responses
+
+What one hot encoding actually does ?
+  
+  - regression ?
+  - classification ?
+
+\bigskip
+
+Why Newton's step use Hessian's inverse $\vv{H}^{-1}$ ?
+
+  $$\vv{\theta}_{t+1} \leftarrow \vv{\theta}_t - \vv{H}_t^{-1}\vv{g}_t$$
+  
+  - long story: it optimise local approximated quadratic function
+    
+  - short story: inversely related to curvature (H measures curvature in higher dimensions)
+    - larger curvature (pointy and curvy) $\Rightarrow$ shorter steps; 
+    - smaller curvature (flatter)
+
+
+## Today's topic
+
+Nonlinear model
+
+  - fixed basis models
+  
+Regularisation
+
+  - $l_2$ penalty: ridge regression 
+  - $l_1$ penalty: lasso regression
+
+## Towards nonlinear models: regression
+
+
+
+::::::{.cols data-latex=""}
+
+::: {.col data-latex="{0.70\textwidth}"}
+
+For linear regression: 
+
+$$ P({y}|{\vv{x}}, \vv{\theta}) = N(\underbrace{f({\vv{x}};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}: \text{ linear}}, \sigma^2) \;\text{or }\; y= \underbrace{f(\vv{x};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}} +\vv{\epsilon}, \;\; \dd{\epsilon}\sim N(0, \sigma^2)$$
+
+
+The regression function $f$ is assumed linear
+  $$f(\vv{x};\vv{\theta}) = \vv{\theta}^T{\vv{x}}$$
+
+  - *i.e.* fitting lines/hyperplanes
+  - in real life, a lot of relationships are not linear 
+  - and we do not know what $f(\vv{x})$ should look like ! 
+  
+:::
+
+::: {.col data-latex="{0.30\textwidth}"}
+```{r, out.height="42%"}
+library(plot3D)
+# x, y, z variables
+x <- mtcars$wt
+y <- mtcars$disp
+z <- mtcars$mpg
+# Compute the linear regression (z = ax + by + d)
+fit <- lm(z ~ x + y)
+# predict values on regular xy grid
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+y.pred <- seq(min(y), max(y), length.out = grid.lines)
+xy <- expand.grid( x = x.pred, y = y.pred)
+z.pred <- matrix(predict(fit, newdata = xy), 
+                 nrow = grid.lines, ncol = grid.lines)
+# fitted points for droplines to surface
+fitpoints <- predict(fit)
+# scatter plot with regression plane
+par(mar=c(3,3,3,0.1)+.1)
+
+
+scatter3D(x, y, z, pch = 18, cex = 2, 
+    theta = 20, phi = 20, ticktype = "detailed",
+    xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE,
+    surf = list(x = x.pred, y = y.pred, z = z.pred,  
+    facets = NA, fit = fitpoints))
+```
+
+```{r, out.height="45%"}
+library(MASS)
+quaF <- function(x){-(x[1]-5)^2-(x[2]-5)^2+100}
+dat<-mvrnorm(50, c(5,5), diag(20, nrow=2))
+zz<-sapply(1:nrow(dat), function(x) quaF(dat[x,])+rnorm(1,0,2))
+save(dat,zz, file="./data/lec9_nonlinear_reg.RData")
+load("./data/lec9_nonlinear_reg.RData")
+
+
+scatter3D(dat[,1], dat[,2], zz, pch = 18, cex = 2, 
+     theta = 20, phi = 20, ticktype = "detailed",
+     xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE)
+
+M <- mesh(seq(-3, 13, by=0.5),seq(-3, 13, by = 0.5))
+z = -(M$x-5) ^2 -(M$y-5)^2+100
+surf3D(x=M$x, y=M$y, z= z, colkey = F, 
+         bty = "b2",  add=T, facets = NA)
+```
+
+:::
+::::::
+
+
+## Towards nonlinear models: classification
+
+::::::{.cols data-latex=""}
+
+::: {.col data-latex="{0.70\textwidth}"}
+
+For logistic regression: 
+
+$$P({y}|{\vv{x}}, \vv{\theta}) = \text{Ber}(\sigma(\underbrace{f(\vv{x};\vv{\theta})}_{\vv{\theta}^T{\vv{x}}: \text{ linear}})= \sigma^{{y}}(1-\sigma)^{(1-{{y}})}$$
+To predict the label $y$ for any input $\vv{x}$: 
+\begin{align*}\footnotesize
+{y}=1\; \text{if }P({{y}}=1|{\vv{x}}, \vv{\theta}) > 0.5\;\;  {y}=0\; \text{if otherwise}
+\end{align*}
+
+
+Note that the **decision boundary** is linear (hyperplane or line)
+
+$$P({{y}}=1|{\vv{x}}, \vv{\theta}) = 0.5 \Rightarrow \vv{\theta}^T\vv{x} =0$$ 
+
+  - $i.e.$ separating data by lines/hyperplanes 
+  - in reality, we do know what $f$ should be; plane or a more general surface
+:::
+
+::: {.col data-latex="{0.30\textwidth}"}
+```{r, out.width="95%"}
+# x_1 <- mvrnorm(50, c(-2,-2),  matrix(c(10,2,2,5), ncol = 2, byrow=T))
+# x_2 <- mvrnorm(50, c(3, 3),  matrix(c(10,2,1,5), ncol = 2, byrow=T))
+# XX <-  cbind(1, rbind(x_1, x_2))
+# y<- c(rep(0, nrow(x_1)), rep(1, nrow(x_2)))
+load("./data/lec9_logisticDecision.RData")
+
+scatter3D(XX[,2], XX[,3], y, pch = 18, cex = 2, 
+     theta = 45, phi = 35, ticktype = "detailed",
+     xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE, zlim=c(0,1.3))
+
+M <- mesh(seq(min(XX[,2])-1, max(XX[,3])+1, by=0.5),seq(min(XX[,3])-1, max(XX[,3])+1, by = 0.5))
+dat_<-data.frame(y=y, X=XX[,2:3])
+fit<-glm(y~X.1+X.2, data=dat_, family = "binomial")$coefficients
+
+zz<-sigmoid(fit[2]*M$x + fit[3]*M$y+ fit[1])
+surf3D(x=M$x, y=M$y, z= zz, colkey = F, 
+         bty = "b2",  add=T, facets = NA)
+
+rect3D(x0 = -10, y0 = -8, z0 = 0.5, x1 = 9, y1=10, 
+       ylim = c(-11, 11),xlim=c(-11, 11), bty = "g", facets = T, 
+        col ="#7570B3", alpha=0.5,
+       lwd = 2, phi = 20, add=T)
+
+x1<- seq(-10,10, by=0.1)
+x2 <- (-fit[1]-fit[2]*x1) /fit[3]
+
+lines3D(x1, x2, rep(0.5, length(x1)), col="darkgreen", lwd=5 , lty=3,cex=2, add=T)
+```
+
+```{r, out.width="95%", fig.asp=0.85}
+par(mar=c(5,5,5,0.1)+.1)
+plot(XX[1:50, 2], XX[1:50, 3], pch=1, col="blue", xlim=c(min(XX[,2]), max(XX[,2])), ylim=c(min(XX[,3]), max(XX[,3])), xlab=expression(x[1]), ylab=expression(x[2]), cex=3, cex.lab=2.5, cex.axis=2)
+points(XX[51:100, 2], XX[51:100, 3], pch=8, col="red", cex=3)
+x1<- seq(-12, 10, by=0.5)
+y1<- (-fit[1]-x1*fit[2])/fit[3]
+lines(x1, y1, lwd=5, lty=2, col="darkgreen")
+text(-7.5, 4.75, "P=0.5", cex=3)
+# contour(xg, yg, z, nlevels = 80, xlab = expression(mu[1]), 
+#         ylab = expression(mu[2]))
+# 
+# points(t(rstGD2[[1]][2:3,]), pch=20, type="b", col="blue")
+# points(t(rstND2[[1]][2:3,]), pch=20, type="b", col="red")
+# points(t(rstGD_NoLineS[[1]][2:3,]), pch=20, type="b", col="purple")
+
+```
+
+:::
+::::::
+
+## Nonlinear classification data
+::::::{.cols data-latex=""}
+
+::: {.col data-latex="{0.70\textwidth}"}
+What if your data looks like this ?
+  
+  - no linear descision boudary or $f(\vv{x};\vv{\theta}) = \vv{\theta}^T\vv{x}$ seems making much sense
+  - but a non-linear boundary makes more sense 
+    - the classification rule is actually $||\vv{x}||_2^2 = x_1^2+x_2^2\leq 1$
+    - distance to $\vv{0}$ is less than 1
+    - the boundary is a circle 
+    - \footnotesize I know it because I generated the data
+:::
+
+::: {.col data-latex="{0.30\textwidth}"}
+```{r, out.height="45%", fig.asp=1}
+par(mar=c(5,5,5,0.1)+.1)
+# xx <-runif(400, -1.8,1.8)
+# xx <- cbind(xx[1:200], xx[201:400])
+# y <- rep(1,nrow(xx));
+# y[(xx[,1]^2+xx[,2]^2)<1 ] <- 0
+load("./data/lec9_nonlinear_class.RData")
+plot(xx[y==0, 1], xx[y==0, 2], pch=8, col="blue", xlim=c(min(xx[,1])-0.5, max(xx[,1])+0.5), ylim=c(min(xx[,2])-0.5, max(xx[,2])+0.5), xlab=expression(x[1]), ylab=expression(x[2]), cex=5, cex.lab=2.5, cex.axis=2)
+points(xx[y==1, 1], xx[y==1, 2], pch=1, col="red", cex=5)
+x1<- seq(-2, 2, by=0.5)
+y1<- x1*1+1
+lines(x1, y1, lwd=5, lty=2, col="darkgreen")
+text(1.3, 2, "???", cex=3, col="darkgreen")
+```
+
+```{r, out.height="45%", fig.asp=1}
+library(plotrix)
+par(mar=c(5,5,5,0.1)+.1)
+# xx <-runif(400, -1.8,1.8)
+# xx <- cbind(xx[1:200], xx[201:400])
+# y <- rep(1,nrow(xx));
+# y[(xx[,1]^2+xx[,2]^2)<1 ] <- 0
+load("./data/lec9_nonlinear_class.RData")
+plot(xx[y==0, 1], xx[y==0, 2], pch=8, col="blue", xlim=c(min(xx[,1])-0.5, max(xx[,1])+0.5), ylim=c(min(xx[,2])-0.5, max(xx[,2])+0.5), xlab=expression(x[1]), ylab=expression(x[2]), cex=5, cex.lab=2.5, cex.axis=2)
+points(xx[y==1, 1], xx[y==1, 2], pch=1, col="red", cex=5)
+ draw.circle(0,0,c(1),border="darkgreen",lty=1,lwd=5)
+# x1<- seq(-12, 10, by=0.5)
+# y1<- (-fit[1]-x1*fit[2])/fit[3]
+# lines(x1, y1, lwd=5, lty=2, col="darkgreen")
+# text(-7.5, 4.75, "P=0.5", cex=3)
+```
+:::
+::::::
+
+## Nonlinear model: polynomial model
+```{r, figures-side, fig.show="hold", out.height="40%"}
+# quaF <- function(x){-(x[1]-5)^2-(x[2]-5)^2+10}
+# dat<-mvrnorm(50, c(5,5), diag(20, nrow=2))
+# zz<-sapply(1:nrow(dat), function(x) quaF(dat[x,])+rnorm(1,0,2))
+load("./data/lec9_nonlinear_reg.RData")
+scatter3D(dat[,1], dat[,2], zz, pch = 18, cex = 2, 
+     theta = 20, phi = 20, ticktype = "detailed",
+     xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE)
+
+M <- mesh(seq(-2, 11.5, by=0.5),seq(-2, 12, by = 0.5))
+z = -(M$x-5) ^2 -(M$y-5)^2+100
+surf3D(x=M$x, y=M$y, z= z, colkey = F, 
+         bty = "b2",  add=T, facets = NA)
+
+load("./data/lec9_nonlinear_class.RData")
+
+scatter3D(xx[,1], xx[,2], y, pch = 18, cex = 2, 
+     theta = 20, phi = 30, ticktype = "detailed",
+     xlab = "x1", ylab = "x2", zlab = "f",  colkey = FALSE)
+
+M <- mesh(seq(-2, 2, by=0.1),seq(-2, 2, by = 0.1))
+z = sigmoid(5*(M$x)^2 + 5*(M$y)^2-5)
+surf3D(x=M$x, y=M$y, z= z, colkey = F, 
+         bty = "b2",  add=T, facets = NA)
+
+```
+Both models are actually 2nd order polynomial:
+\footnotesize$$f(\vv{x};\vv{\beta}) = \beta_0+ \beta_1x_1+ \beta_2x_2 +\beta_3x_1x_2+\beta_4x_1^2 +\beta_5x_2^2 =\sum_{k=0}^5 \beta_j \phi_j(\vv{x})=\vv{\beta}^T\vv{\phi}(\vv{x})$$
+
+\normalsize 
+  - where  $$\footnotesize \vv{\phi}(\vv{x}) = [\underbrace{1}_{\phi_0(\vv{x})}, \underbrace{x_1}_{\phi_1(\vv{x})}, \underbrace{x_2}_{\phi_2(\vv{x})}, \underbrace{x_1x_2}_{\phi_3(\vv{x})}, \underbrace{x_1^2}_{\phi_4(\vv{x})}, \underbrace{x_2^2}_{\phi_5(\vv{x})}]^T$$ 
+  
+- it expands $\vv{x}=[1, x_1, x_2]^T$ to a larger vector 
+
+  <!-- - $\vv{\phi}$ is called basis function: it takes in  -->
+  <!-- - regression model above: $f(\vv{x}) = 100- (x_1-5)^2-(x_2-5)^2$ -->
+  <!-- - classification model above: $f(\vv{x}) = 5x_1^2+5x_2^2-5$; the decision boundary is $x_1^2+x_2^2=1$: a circle -->
+  
+
+## Nonlinear response from linear model
+
+Note that you get a free nonlinear model by transforming the input $\vv{X}$
+$$\footnotesize \vv{X} = \begin{bmatrix} 1& \di{x}{1}_1& \di{x}{1}_2 \\
+1& \di{x}{2}_1& \di{x}{2}_2 \\
+\vdots& \vdots& \vdots \\
+1 &  \di{x}{m}_1& \di{x}{m}_2
+\end{bmatrix} \Rightarrow \vv{\Phi} =\begin{bmatrix} \vv{\phi}(\Di{x}{1}) \\
+\vv{\phi}(\Di{x}{2}) \\
+\vdots \\
+\vv{\phi}(\Di{x}{m})
+\end{bmatrix} = \begin{bmatrix} 1& \di{x}{1}_1& \di{x}{1}_2& \di{x}{1}_1 \di{x}{1}_2& (\di{x}{1}_1)^2 & (\di{x}{1}_2)^2\\
+1& \di{x}{2}_1& \di{x}{2}_2& \di{x}{2}_1 \di{x}{2}_2& (\di{x}{2}_1)^2 & (\di{x}{2}_2)^2\\
+\vdots& \vdots& \vdots & \vdots & \vdots & \vdots\\
+1& \di{x}{m}_1& \di{x}{m}_2& \di{x}{m}_1 \di{x}{m}_2& (\di{x}{m}_1)^2 & (\di{x}{m}_2)^2\\
+\end{bmatrix}$$
+
+  - remember superscript $(i)$ index data samples; and  subscript index features 
+  - $\vv{\Phi}$ is a $m\times 6$ matrix
+  
+\normalsize
+
+The expanded model for regression is $$\vv{y} = \vv{\Phi}\vv{\beta} + \vv{\epsilon}$$
+  
+  - still a linear model w.r.t $\vv{\phi}$, the expanded new features
+  - all existing results apply: gradient descent, normal equation (replace $\vv{X}$ with $\vv{\Phi}$)
+  $$\vv{\beta}_{ls} =(\vv{\Phi}^T\vv{\Phi})^{-1}\vv{\Phi}^T\vv{y}$$
+
+
+## Polynomial basis function expansion
+
+Consider predictors with $n=2$ input features, $$\vv{x} = [1, {x}_1, {x}_2]^T \text{ \footnotesize (1 is dummy variable)}$$ 
+
+Second order polynormial, $\vv{\phi}$ expands $\vv{x}$ to
+$$\vv{\phi}(\vv{x}) = [{1}, {x_1}, {x_2}, {x_1x_2}, {x_1^2}, {x_2^2}]^T;$$
+    
+  - what if the input size is $n$ rather than 2? $(1+n+\binom{n}{2}+n) \in O(n^2)$
+  
+Third order polynormial, it becomes
+
+  $$\vv{\phi}(\vv{x}) = [{1}, {x_1}, {x_2}, {x_1x_2}, {x_1^2}, {x_2^2}, \underbrace{x_1x_2^2, x_1^2x_2, x_1^3, x_2^3}_{\text{3-rd order terms}}]^T$$
+Higher order leads to larger number of basis; it may not necessary be a good thing though
+
+
+```{r}
+x_s <- 0
+x_t <- 4*pi
+
+xx <- seq(x_s, x_t, by = 0.1)
+xx <- sort(xx)
+xx_complete <- xx
+# xx<-xx[c(1:(length(xx)/2-1), (length(xx)/2+33):length(xx))]
+y <- sin(xx)+rnorm(length(xx), mean = 0, sd = 0.1)
+
+
+
+
+poly_basis <- function(order=4, dat=xx){
+  if(order>0){
+    Xs<-lapply(1:order, function(x) dat^x)
+  }else{
+    return(matrix(1, nrow=length(dat)))
+  }
+  return(cbind(rep(1,length(dat)), matrix(unlist(Xs), ncol=order)))
+}
+
+consts_basis <- function(knots=5, dat=xx, xmin=0, xmax=5){
+  if(knots <=0){
+    return(matrix(1, nrow=length(dat)))
+  }
+  step <- (xmax-xmin)/(knots+1)
+  intervals <- xmin + (1:knots)*step
+  intervals <- c(-Inf, intervals, Inf)
+  xxs<-sapply(1:(length(intervals)-1), function(x) {(dat>= intervals[x]) * (dat< intervals[x+1])})
+  return(xxs)
+}
+
+rad_basis <- function(knots=5, s=1, dat=xx, xmin=x_s, xmax=x_t){
+  if(knots <=0){
+    return(matrix(1, nrow=length(dat)))
+  }
+  step <- (xmax-xmin)/(knots+1)
+  mus <- xmin + (1:knots)*step
+  xxs<-sapply(1:(length(mus)), function(x) {exp(-1*(dat-mus[x])^2/(2*s^2))})
+  return(xxs)
+}
+
+sig_basis <- function(knots=5, s=1, dat=xx, xmin=x_s, xmax=x_t){
+  if(knots <=0){
+    return(matrix(1, nrow=length(dat)))
+  }
+  step <- (xmax-xmin)/(knots+1)
+  mus <- xmin + (1:knots)*step
+  xxs<-sapply(1:(length(mus)), function(x) {sigmoid((dat-mus[x])/s)})
+  return(xxs)
+}
+
+
+plotbasis<-function(k=1){
+par(mfrow=c(1,4))
+par(mar=c(2,1,1,1)+.1)
+xs <- seq(x_s, x_t, length.out = 100)
+df_consts<-data.frame(X=consts_basis(knots = k-1, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_consts <- lm(y~.+0, df_consts)
+xss <- data.frame(X=consts_basis(knots = k-1, dat = xs, xmin=x_s, xmax=x_t))
+ys<- predict(fit_consts, newdata = xss)
+plot(xx, y, ylim=c(min(y), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red")
+lines(xs, sin(xs))
+for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+
+df_poly<-data.frame(X=poly_basis(order=k-1), y)
+fit_poly <- lm(y~.+0, df_poly)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=poly_basis(order=k-1, xs))
+ys<- predict(fit_poly, newdata = xss)
+plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red")
+lines(xs, sin(xs))
+for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+
+
+
+
+ss <- 1
+df_rad<-data.frame(X=rad_basis(knots = k-1, s=ss, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_rad <- lm(y~.+0, df_rad)
+xss <-data.frame(X=rad_basis(knots = k-1, s=ss, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_rad, newdata = xss)
+plot(xx, y, ylim=c(min(y), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red")
+lines(xs, sin(xs))
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+
+
+
+
+ssig <- 1
+df_sig<-data.frame(X=sig_basis(knots = k-1, s=ssig, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_sig <- lm(y~.+0, df_sig)
+xss <-  data.frame(X=sig_basis(knots = k-1, s=ssig, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_sig, newdata =xss)
+plot(xx, y, ylim=c(min(y,ys), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red")
+lines(xs, sin(xs))
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+}
+```
+
+## Example: polynormial fitting
+
+True regression function: \textcolor{blue}{$\mathbf{f=\sin(x)}$}; and $\di{y}{i}= \sin(\di{x}{i}) + \di{\epsilon}{i}$, $\epsilon \sim N(0, 0.2^2)$
+\vspace{0.5cm}
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,2))
+par(mar=c(2,1,1,1)+.1)
+# for(kk in c(1,2,3,4,5)){
+kk <- c(1,2,4,8)
+xs <- seq(x_s, x_t, length.out = 100)
+for(ki in kk){
+df_poly<-data.frame(X=poly_basis(order=ki-1), y)
+fit_poly <- lm(y~.+0, df_poly)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=poly_basis(order=ki-1, xs))
+ys<- predict(fit_poly, newdata = xss)
+plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+text(10.2, 1, paste("Order = ",ki-1), cex=2.5)
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+}
+```
+
+  
+## Other basis function $\vv{\phi}$
+
+$\vv{\phi}{(\vv{x})}$ can take other forms
+
+  - each $\phi_k(\vv{x})$ is a $R^n\rightarrow R$ transformation; 
+    - so $\vv{\phi}$ is a $R^n\rightarrow R^p$ transformation: previous example: $n=3$, $p=6$
+    - obviously, if $\vv{\phi}(\vv{x}) = \vv{I}\vv{x}$, we recover ordinary linear regression
+      - it is a specific case of basis expansion model
+  - 2nd order polynomial: $\phi_k(\vv{x}) = x_j^2$, $x_jx_{j'}$, $x_j$, or 1; for $k=1\ldots p$
+<!--   - polynomial basis of increasing orders looks like this -->
+<!-- ```{r, out.height="45%", fig.show="hold"} -->
+<!-- knitr::include_graphics("./figs/Figure3_1a.pdf") -->
+<!-- # knitr::include_graphics("./figs/Figure3_1b.pdf") -->
+<!-- # knitr::include_graphics("./figs/Figure3_1c.pdf") -->
+<!-- ``` -->
+  - $\phi_k(x) = \log(x), \sqrt{x}$ can take other (literally any) nonlinear forms
+  
+  
+## Fixed basis models
+
+Fixed basis model assumes $$f(\vv{x};\vv{\beta})=\sum_{k=0}^{p-1} {\beta}_k {\phi}_k(\vv{x})= \vv{\beta}^T\vv{\phi}(\vv{x})$$
+
+  - "fixed" because the basis functions need to be manually specified
+    - the contrary is adaptive basis (the basis are learnt)
+  - still linear w.r.t each new feature input $\phi_k$
+    - all linear learning results apply to $\vv{\beta}$
+  - no longer linear in the orginal input $\vv{x}$
+  
+  
+## Two popular basis in ML literature
+
+In traditional Machine Learning literature, radial basis function (RBF) and sigmoid (or "tanh") are popular
+
+  $$\underbrace{\phi_k(\vv{x}) = \exp{(-\frac{||\vv{x}-\vv{\mu}_k||_2^2}{2s^2})}}_{\text{radial basis}}, \;\; \underbrace{\phi_k(x) = \frac{1}{1+\exp{(-\frac{{x}-{\mu}_k}{s}})}}_{\text{sigmoid basis}}$$ 
+  
+  - they are location based: depending on $\mu$; while polynomial basis are not (lower left)!
+  - very general basis and can fit various different models
+  
+```{r, out.height="43%", fig.show="hold"} 
+ knitr::include_graphics("./figs/Figure3_1a.pdf") 
+ knitr::include_graphics("./figs/Figure3_1b.pdf") 
+ knitr::include_graphics("./figs/Figure3_1c.pdf") 
+``` 
+  
+  
+## Example: radial basis function (RBF) with varying number of basis 
+
+True regression function: \textcolor{blue}{$\mathbf{f=\sin(x)}$}; and $\di{y}{i}= \sin(\di{x}{i}) + \di{\epsilon}{i}$, $\epsilon \sim N(0, 0.2^2)$
+
+More RBF basis (dashed gray lines) fits better; location $\mu_k$ matter ($p=3$ is an (unlucky) example);
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,2))
+par(mar=c(2,1,1,1)+.1)
+# for(kk in c(1,2,3,4,5)){
+kk <- c(2,4,5,9)
+xs <- seq(x_s, x_t, length.out = 100)
+ss <- 1
+# df_poly<-data.frame(X=poly_basis(order=ki-1), y)
+# fit_poly <- lm(y~.+0, df_poly)
+# # lines(xx, predict(fit_poly))
+# xss=data.frame(X=poly_basis(order=ki-1, xs))
+# ys<- predict(fit_poly, newdata = xss)
+# plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+# lines(xs, sin(xs), col="blue")
+# lines(xs, ys, col="red")
+# text(10.2, 1, paste("Order = ",ki-1), cex=2.5)
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+# }
+
+for(ki in kk){
+df_rad<-data.frame(X=rad_basis(knots = ki-1, s=ss, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_rad <- lm(y~.+0, df_rad)
+xss <-data.frame(X=rad_basis(knots = ki-1, s=ss, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_rad, newdata = xss)
+plot(xx, y, ylim=c(min(y), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red", lwd=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+text(11.2, 1, paste("p = ",ki-1), cex=2.5)
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+}
+```
+  
+## Example: radial basis function (RBF) with varying scale $s$ 
+
+Smaller scale $s$ $\Rightarrow$ wiggly predictions; 
+
+Large scale $s$ $\Rightarrow$ flatter predictions, not good either !
+ ($p=10$ basis for all four cases)
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,2))
+par(mar=c(2,1,1,1)+.1)
+# for(kk in c(1,2,3,4,5)){
+kk <- c(11)
+xs <- seq(x_s, x_t, length.out = 100)
+ss <- c(0.1, 0.3, 2, 20)
+# df_poly<-data.frame(X=poly_basis(order=ki-1), y)
+# fit_poly <- lm(y~.+0, df_poly)
+# # lines(xx, predict(fit_poly))
+# xss=data.frame(X=poly_basis(order=ki-1, xs))
+# ys<- predict(fit_poly, newdata = xss)
+# plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+# lines(xs, sin(xs), col="blue")
+# lines(xs, ys, col="red")
+# text(10.2, 1, paste("Order = ",ki-1), cex=2.5)
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+# }
+
+for(si in ss){
+df_rad<-data.frame(X=rad_basis(knots = kk-1, s=si, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_rad <- lm(y~.+0, df_rad)
+xss <-data.frame(X=rad_basis(knots = kk-1, s=si, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_rad, newdata = xss)
+plot(xx, y, ylim=c(min(y), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red", lwd=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+text(11, 1, paste("s = ",si), cex=2.5)
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+}
+```  
+
+
+## Example: sigmoid basis with varying number of basis
+
+More basis (more locations $\mu_k$) fits data better again 
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,2))
+par(mar=c(2,1,1,1)+.1)
+# for(kk in c(1,2,3,4,5)){
+kk <- c(2,4,7,11)
+xs <- seq(x_s, x_t, length.out = 100)
+ssig <- 1
+# df_poly<-data.frame(X=poly_basis(order=ki-1), y)
+# fit_poly <- lm(y~.+0, df_poly)
+# # lines(xx, predict(fit_poly))
+# xss=data.frame(X=poly_basis(order=ki-1, xs))
+# ys<- predict(fit_poly, newdata = xss)
+# plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+# lines(xs, sin(xs), col="blue")
+# lines(xs, ys, col="red")
+# text(10.2, 1, paste("Order = ",ki-1), cex=2.5)
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+# }
+for(ki in kk){
+
+df_sig<-data.frame(X=sig_basis(knots = ki-1, s=ssig, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_sig <- lm(y~., df_sig)
+xss <-  data.frame(X=sig_basis(knots = ki-1, s=ssig, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_sig, newdata =xss)
+plot(xx, y, ylim=c(min(y,ys), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red", lwd=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+text(11.2, 1, paste("p = ",ki-1), cex=2.5)
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+}
+
+```
+
+
+## Example: sigmoid basis with varying scale $s$
+
+Smaller scale $s$ $\Rightarrow$ step functions;
+Large scale $s$ $\Rightarrow$ smoother predictions
+ ($p=11$ basis for all four cases)
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,2))
+par(mar=c(2,1,1,1)+.1)
+# for(kk in c(1,2,3,4,5)){
+kk <- 12
+xs <- seq(x_s, x_t, length.out = 100)
+ssig <- c(0.01, 0.2, 0.5, 20)
+# df_poly<-data.frame(X=poly_basis(order=ki-1), y)
+# fit_poly <- lm(y~.+0, df_poly)
+# # lines(xx, predict(fit_poly))
+# xss=data.frame(X=poly_basis(order=ki-1, xs))
+# ys<- predict(fit_poly, newdata = xss)
+# plot(xx, y, ylim=c(min(y),max(ys,y)), xlab=NA, ylab=NA)
+# lines(xs, sin(xs), col="blue")
+# lines(xs, ys, col="red")
+# text(10.2, 1, paste("Order = ",ki-1), cex=2.5)
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+# }
+for(si in ssig){
+
+df_sig<-data.frame(X=sig_basis(knots = kk-1, s=si, dat = xx, xmin=x_s, xmax=x_t), y)
+fit_sig <- lm(y~.+0, df_sig)
+xss <-  data.frame(X=sig_basis(knots = kk-1, s=si, dat = xs, xmin=x_s, xmax=x_t))
+ys<-predict(fit_sig, newdata =xss)
+plot(xx, y, ylim=c(min(y,ys), max(ys,y)), xlab=NA, ylab=NA)
+lines(xs, ys, col="red", lwd=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+text(11.1, 1, paste("s = ",si), cex=2.5)
+for(i in 1:ncol(xss)){lines(xs, xss[,i], col="darkgray", lty=2, lwd=1.5)}
+}
+
+```
+
+## Interpretation of fixed basis models
+
+In abstract vector space, functions are vectors, say $\phi_k(\vv{x})$
+
+$$f(\vv{x};\vv{\beta})= \sum_{k=0}^{p-1} {\beta}_k {\phi}_k(\vv{x})$$
+  
+  - $f$: a linear combination of vectors $\{\phi_0,\phi_1,\ldots,\phi_p\}$
+  - e.g. $f(x) = \beta_0 +\beta_1x$ is a linear combination of two functions (vectors): $\phi_0(x)= 1$ and $\phi_1(x) =x$ 
+  $$f(x) = \beta_0 \phi_0(x)+\beta_1\phi_1(x)$$
+  - linear regression: $\hat{f}\in \text{span}(\{1, x\})$ with $\hat{\beta}_0, \hat{\beta}_1$
+    - projection of $f$ to the subspace
+  - larger functional space $\text{span}(\{\phi_k(x)\}_1^p)$ ($p$ increases) $\Rightarrow$ better fit
+    - until $f$ exactly lives in the span (which can be bad!)
+    - regardless of $\phi_k$'s shapes as long as nonlinear and "different" (linear independent)
+    
+  
+
+## Flexibility resolves underfitting but introduce overfitting
+```{r}
+Corner_text <- function(text, location="topright"){
+legend(location,legend=text, bty ="n", pch=NA, cex=2) 
+}
+```
+Training loss:
+$$\footnotesize L(\vv{\beta}) = \sum_{i=1}^m (\dd{y} - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2$$ 
+
+More basis functions ($p$ increases) $\Rightarrow$ flexible model (larger functional subspace)
+
+  - MLE loss (squared error in training) uniformly decreases
+  
+<!-- Left: $p=2$ polynamial basis -->
+
+<!-- Right: $p=23$ polynomial basis -->
+```{r}
+xx2 <- seq(x_s, x_t, by = 0.5)
+# xx2 <- sort(xx)
+xx_complete <- xx2
+# xx2<-xx2[c(1:(length(xx2)/2), (length(xx2)/2+8):length(xx2))]
+y2 <- sin(xx2)+rnorm(length(xx2), mean = 0, sd = 0.3)
+```
+
+
+
+```{r, out.width="100%", fig.asp=0.34}
+par(mfrow=c(1,4))
+par(mar=c(5,1,1,1)+.1)
+
+
+
+# for(kk in c(1,2,3,4,5)){
+kk <- c(2,4,8,28)
+xs <- seq(x_s, x_t, length.out = 100)
+# fittings <- c("underfitting", "", "good fit", "overfitting")
+j<-1
+for(ki in kk){
+df_poly2<-data.frame(X=poly_basis(order=ki-1, dat = xx2), y=y2)
+fit_poly2 <- lm(y~.+0, df_poly2)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=poly_basis(order=ki-1, xs))
+ys<- predict(fit_poly2, newdata = xss)
+mse <- sum(((sin(xs)-ys)^2))
+loss <- sum((y2-predict(fit_poly2))^2)
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=paste("p=", ki-1), ylab=NA,cex.lab=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+Corner_text(text=paste("train L = ", round(loss,2)))
+j<-j+1
+for(i in 1:ncol(xss)){lines(xs, xss[,i]*max(ys)/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+# }
+}
+```
+
+
+## Classification example: polynomial basis
+:::::: {.cols data-latex=""}
+
+::: {.col data-latex="{0.30\textwidth}"}
+The training NLL drops 
+
+\footnotesize 
+  
+  - possible to achieve 100% training accuracy
+  - regardless of dataset
+  - just keep expanding
+
+:::
+
+::: {.col data-latex="{0.70\textwidth}"}
+
+```{r, fig.asp=0.7, out.height="87%", warning=F, message=FALSE, results='hide'}
+# class labels: simple distance from origin
+par(mfrow=c(2,2))
+par(mar=c(.1,.1,.1,.1)+.1)
+load("./data/lec9_nonlinear_class.RData")
+# plot(xx[y==0, 1], xx[y==0, 2], pch=8, col="blue", xlim=c(min(xx[,1])-0.5, max(xx[,1])+0.5), ylim=c(min(xx[,2])-0.5, max(xx[,2])+0.5), xlab=expression(x[1]), ylab=expression(x[2]), cex=5, cex.lab=2.5, cex.axis=2)
+# points(xx[y==1, 1], xx[y==1, 2], pch=1, col="red", cex=5)
+
+# tmpd<-poly(xx, degree=1)
+
+
+dat_<-data.frame(y=y, X=xx)
+
+fit_tmp<-glm(y~.+0, data=dat_, family = "binomial")
+# fit_tmp<-glm(y~. ,data.frame(X=xx, y=y), family = "binomial")
+gridlines <-200
+x.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+y.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+xy <- expand.grid(x = x.pred, y = y.pred)
+colnames(xy) <-NULL
+z.pred <- matrix(predict(fit_tmp, newdata = data.frame(X=(xy)), type="response"), 
+                 nrow = gridlines, ncol = gridlines)
+
+contour(x=x.pred, y=y.pred, z=z.pred,labels = NULL,
+        col="grey", drawlabels=T, lwd=2)
+points(xx[y==0, 1], xx[y==0, 2], pch=2, col="red", cex=1)
+points(xx[y==1, 1], xx[y==1, 2], pch=2, col="blue", cex=1)
+
+class(fit_tmp) <- c("lr", class(fit_tmp))
+predict.lr <- function(object, newdata, ...)
+  predict.glm(object, newdata, type = "response") > .5
+
+p <- predict.lr(fit_tmp, newdata = data.frame(X=(xy)))
+points(expand.grid(x = x.pred, y = y.pred), col = as.integer(p)+1L, pch = ".")
+
+
+newXX <- cbind(xx[,1]^2, xx[,2]^2)
+dat_<-data.frame(y=y, X=newXX)
+
+fit_tmp<-glm(y~., data=dat_, family = "binomial")
+# fit_tmp<-glm(y~. ,data.frame(X=xx, y=y), family = "binomial")
+gridlines <-200
+x.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+y.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+xy <- expand.grid(x = x.pred, y = y.pred)
+xy <- cbind(xy[,1]^2, xy[,2]^2)
+
+z.pred <- matrix(predict(fit_tmp, newdata = data.frame(X=(xy)), type="response"), 
+                 nrow = gridlines, ncol = gridlines)
+
+contour(x=x.pred, y=y.pred, z=z.pred,labels = NULL,
+        col="grey", drawlabels=T, lwd=2)
+points(xx[y==0, 1], xx[y==0, 2], pch=2, col="red", cex=1)
+points(xx[y==1, 1], xx[y==1, 2], pch=2, col="blue", cex=1)
+
+class(fit_tmp) <- c("lr", class(fit_tmp))
+predict.lr <- function(object, newdata, ...)
+  predict.glm(object, newdata, type = "response") > .5
+
+p <- predict.lr(fit_tmp, newdata = data.frame(X=(xy)))
+points(expand.grid(x = x.pred, y = y.pred), col = as.integer(p)+1L, pch = ".")
+
+
+polylogis_plot<-function(porder=2){
+# newXX<-poly(xx, degree = porder)
+newxx<-poly_basis(porder, xx[,1])[,-1]
+newxx2<-poly_basis(porder, xx[,2])[,-1]
+newXX <- cbind(newxx, newxx2)
+dat_<-data.frame(y=y, X=newXX)
+
+fit_tmp<-glm(y~.+0, data=dat_, family = "binomial")
+# fit_tmp<-glm(y~. ,data.frame(X=xx, y=y), family = "binomial")
+gridlines <-200
+x.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+y.pred <- seq(-2-0.2, 2+0.2, length.out = gridlines)
+xy <- expand.grid(x = x.pred, y = y.pred)
+testxx<-poly_basis(porder, xy[,1])[,-1]
+testxx2<-poly_basis(porder, xy[,2])[,-1]
+xy <- cbind(testxx, testxx2)
+# xy <- poly(as.matrix(xy), degree = porder)
+
+
+z.pred <- matrix(predict(fit_tmp, newdata = data.frame(X=(xy)), type="response"), 
+                 nrow = gridlines, ncol = gridlines)
+
+contour(x=x.pred, y=y.pred, z=z.pred,labels = NULL,
+        col="grey", drawlabels=T, lwd=2)
+points(xx[y==0, 1], xx[y==0, 2], pch=2, col="red", cex=1)
+points(xx[y==1, 1], xx[y==1, 2], pch=2, col="blue", cex=1)
+ # draw.circle(0,0,c(1),border="darkgreen",lty=1,lwd=5)
+
+class(fit_tmp) <- c("lr", class(fit_tmp))
+predict.lr <- function(object, newdata, ...)
+  predict.glm(object, newdata, type = "response") > .5
+
+p <- predict.lr(fit_tmp, newdata = data.frame(X=(xy)))
+points(expand.grid(x = x.pred, y = y.pred), col = as.integer(p)+1L, pch = ".")
+}
+
+tmp<-sapply(c(8,10), function(x)  polylogis_plot(x))
+```
+:::
+
+::::::
+
+
+
+## Flexibility resolves underfitting but introduce overfitting (RBF example)
+
+The problem applies to all basis (no matter what shape)
+
+  - as long as you expands the basis $\Rightarrow$ smaller training error 
+  - MLE always favour flexible models
+
+```{r, out.width="100%", fig.asp=0.35}
+par(mfrow=c(1,4))
+par(mar=c(5,1,1,1)+.1)
+
+# xx2 <- seq(x_s, x_t, by = 0.5)
+# # xx2 <- sort(xx)
+# xx_complete <- xx2
+# xx2<-xx2[c(1:(length(xx2)/2), (length(xx2)/2+8):length(xx2))]
+# y2 <- sin(xx2)+rnorm(length(xx2), mean = 0, sd = 0.3)
+
+# for(kk in c(1,2,3,4,5)){
+kk <- c(2,4,8, 22)
+xs <- seq(x_s, x_t, length.out = 100)
+fittings <- c("underfitting", "underfitting","good fit","overfitting")
+j<-1
+for(ki in kk){
+df_rad2<-data.frame(X=rad_basis(knots = ki-1, dat = xx2, xmin = x_s, xmax = x_t), y=y2)
+fit_rad2 <- lm(y~., df_rad2)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=rad_basis(knots=ki-1, dat=xs, xmin = x_s, xmax = x_t))
+ys<- predict(fit_rad2, newdata = xss)
+mse <- sum(((sin(xs)-ys)^2))
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=paste("p=", ki-1), ylab=NA, cex.lab=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+loss <- sum((y2-predict(fit_rad2))^2)
+Corner_text(text=paste("train L = ", round(loss,2)))
+j<-j+1
+for(i in 1:ncol(xss)){lines(xs, xss[,i]/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+
+}
+```
+
+
+## Testing results reveals severe overfitting
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(1,4))
+par(mar=c(5,1,1,1)+.1)
+
+
+
+# for(kk in c(1,2,3,4,5)){
+kk <- c(2,4,8,28)
+xs <- seq(x_s, x_t, length.out = 100)
+# fittings <- c("underfitting", "", "good fit", "overfitting")
+j<-1
+for(ki in kk){
+df_poly2<-data.frame(X=poly_basis(order=ki-1, dat = xx2), y=y2)
+fit_poly2 <- lm(y~.+0, df_poly2)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=poly_basis(order=ki-1, xs))
+ys<- predict(fit_poly2, newdata = xss)
+mse <- sum(((sin(xs)-ys)^2))
+loss <- sum((y2-predict(fit_poly2))^2)
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=paste("p=", ki-1), ylab=NA,cex.lab=2)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+Corner_text(text=paste("train L = ", round(loss,2), "\n", "test L = ", round(mse,2)))
+# Corner_text(text=paste("test L = ", round(mse,2)), "bottomleft")
+j<-j+1
+for(i in 1:ncol(xss)){lines(xs, xss[,i]*max(ys)/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+}
+```
+
+## Regularisation: ridge regression
+
+
+For linear regression, we add a $l_2$ norm penalty to the loss
+
+ $$L_{\text{ridge}}(\vv{\beta}) = \underbrace{\sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2}_{\text{previous NLL loss}} + \lambda \underbrace{\vv{\beta}^T\vv{\beta}}_{L_2 \text{ penalty}}$$
+
+  - as NLL (squared error loss) term always favour flexible models
+  - we add a penalty term: $\vv{\beta}^T\vv{\beta} = ||\vv{\beta}||_2^2$; its $l_2$ norm
+  - large $\vv{\beta}$ $\Rightarrow$ higher penalty
+    - "regularise" the value of $\vv{\beta}$: large value of $\vv{\beta}$ is discouraged
+  - large $\lambda$ $\Rightarrow$ large penalty: controls the penalty
+
+
+## Learning of ridge regression
+
+Ridge regression has closed form solution (no surprise: still a quadratic function of $\vv{\beta}$):
+
+$$ \vv{\beta}_{\text{ridge}} = \argmin_{\vv{\beta}} \sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2 + \lambda \vv{\beta}^T\vv{\beta}=  \argmin_{\vv{\beta}} \underbrace{(\vv{y}-\vv{\Phi\beta})^T(\vv{y}-\vv{\Phi\beta}) + \lambda \vv{\beta}^T\vv{\beta}}_{L_{\text{ridge}}(\vv{\beta})}$$
+Take the derivative 
+
+\begin{align*}
+\nabla_{\vv{\beta}} L_{\text{ridge}}= -2(\vv{y}-\vv{\Phi\beta})^T\vv{\Phi} + 2\lambda \vv{\beta}^T\;\;\;\;\;\; (\footnotesize \text{note } \nabla \vv{\beta}^T\vv{\beta} = 2\vv{\beta}^T)
+\end{align*}
+
+And set it to zero
+\begin{align*}
+&-2(\vv{y}-\vv{\Phi\beta})^T\vv{\Phi} + 2\lambda \vv{\beta}^T ={\vv{0}} \Rightarrow \vv{\Phi}^T\vv{\Phi}\vv{\beta} + \lambda \vv{\beta} = \vv{\Phi}^T\vv{y} \\
+&\Rightarrow (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I}) \vv{\beta} = \vv{\Phi}^T\vv{y}\;\;\;\;\;\; (\footnotesize \text{note } \lambda \vv{\beta} = \lambda\vv{I}_{p\times p}\vv{\beta}) \\
+&\Rightarrow \vv{\beta}_{\text{ridge}} = (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I})^{-1}\vv{\Phi}\vv{y}
+\end{align*}
+
+
+## Learning for logistic regression (with $l_2$ penalty)
+
+Similarly, we can derive the results for logistic regression ($l_2$ penalty)
+
+
+$$\vv{\beta}_{\text{ridge}}=\argmin_{{\vv{\beta}}} \underbrace{-\left(\sum_{i=1}^m  \dd{y} \log \sigma^{(i)}+(1-\dd{y}) \log (1-\sigma^{(i)})\right )}_{\text{Negative log likelihood}} + \underbrace{\lambda \vv{\beta}^T\vv{\beta}}_{l_2 \text{ penalty}}$$
+The gradient is $$\nabla_{\vv{\beta}} L_{\text{ridge}} = \underbrace{-(\vv{y}-\sigma(\vv{\Phi\beta}))^T\vv{\Phi}}_{\text{same as before but negated}} + \underbrace{2\lambda \vv{\beta}^T}_{\nabla\text{penalty}} \;\;\; \footnotesize (\text{I am abusing the notation for } \sigma \text{ as before})$$
+
+The Hessian is $$H_{\text{ridge}} = -\vv{X}^T\vv{D}\vv{X}+\lambda\vv{I}$$
+  
+  - "-": minimise the negative LL (directional curvature is bending upwards)
+  - check lecture 6 for $\vv{D}$
+
+
+## Example: Polynomial basis regression (28 basis) with $l_2$ penalty
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,4))
+par(mar=c(5,1,1,1)+.1)
+
+library(MASS)
+library(latex2exp)
+# for(kk in c(1,2,3,4,5)){
+kk <- 29
+lambdas <- c(0, seq(0.000000001, 0.000005, length.out = 5), 0.001, 1)
+xs <- seq(x_s, x_t, length.out = 100)
+# fittings <- c("underfitting", "", "good fit", "overfitting")
+j<-1
+X_<-poly_basis(order=kk-1, dat = xx2)
+for(lami in lambdas){
+df_poly2<-data.frame(X=X_[,-1], y=y2)
+# fit_poly2 <- lm(y~.+0, df_poly2)
+fit_poly2 <- lm.ridge(y~., df_poly2, lambda = lami)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=poly_basis(order=kk-1, xs))
+# ys<- predict(fit_poly2, newdata = xss)
+ys <- as.matrix(xss) %*% coef(fit_poly2)
+mse <- sum(((sin(xs)-ys)^2))
+yhat <- as.matrix(X_) %*% coef(fit_poly2)
+loss <- sum((y2-yhat)^2)
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=TeX(sprintf("$\\lambda = %.2f$", lami*10000000)), ylab=NA,cex.lab=1.5)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+Corner_text(text=paste("test L = ", round(mse,2)))
+# Corner_text(text=paste("test L = ", round(mse,2)), "bottomleft")
+j<-j+1
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]*max(ys)/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+}
+```
+
+
+## Example: Radial basis regression (28 basis) with $l_2$ penalty
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,4))
+par(mar=c(5,1,1,1)+.1)
+
+library(MASS)
+library(latex2exp)
+library(caret)
+# for(kk in c(1,2,3,4,5)){
+kk <- 29
+lambdas <- c(0, 0.001, 0.01, 0.1,10, 100, 200, 1000)
+xs <- seq(x_s, x_t, length.out = 100)
+# fittings <- c("underfitting", "", "good fit", "overfitting")
+j<-1
+X_ <- rad_basis(knots = kk-1, dat = xx2, xmin = x_s, xmax = x_t)
+
+for(lami in lambdas){
+df_rad2<-data.frame(X=X_, y=y2)
+# fit_poly2 <- lm(y~.+0, df_poly2)
+fit_rad2 <- lm.ridge(y~., df_rad2, lambda = lami)
+# lines(xx, predict(fit_poly))
+xss=data.frame(X=rad_basis(knots = kk-1, dat = xs, xmin = x_s, xmax = x_t))
+# ys<- predict(fit_poly2, newdata = xss)
+ys <- as.matrix(cbind(1,xss)) %*% coef(fit_rad2)
+mse <- sum(((sin(xs)-ys)^2))
+yhat <- as.matrix(cbind(1,X_)) %*% coef(fit_rad2)
+loss <- sum((y2-yhat)^2)
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=TeX(sprintf("$\\lambda = %f$", lami)), ylab=NA,cex.lab=1.5)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+Corner_text(text=paste("test L = ", round(mse,2)))
+# Corner_text(text=paste("test L = ", round(mse,2)), "bottomleft")
+j<-j+1
+# for(i in 1:ncol(xss)){lines(xs, xss[,i]*max(ys)/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)}
+}
+```
+
+## $l_2$ penalty in practice
+
+We do not penalise $\beta_0$ (intercept), $\vv{I}_{p\times p}$ is usually replaced with $\vv{I}_{p\times p}'= \begin{bmatrix}\textcolor{red}{0}& 0&\ldots& 0 \\
+0&1&\ldots& 0 \\
+0&0&\ldots& 0 \\
+0&0&\ldots& 1\end{bmatrix}$
+
+!!! Ridge regression is sensitive to the way you scale your data !
+
+  - should consider transformation that make the $l_2$ norm to 1: standardisation (columns of $\vv{\Phi}$'s norm is 1, i.e. $||\vv{\phi}_k||_2=1$)
+  - other scaling may not produce optimal result
+  - sk-learn use $l_2$ penalty by default for logistic regression
+    - for numerical stability reason (remember logistic regression's matrix inversion?)
+
+## Let's demystify what ridge regression does
+
+$$\vv{\beta}_{\text{ridge}} = (\vv{\Phi}^T\vv{\Phi} + \lambda\vv{I})^{-1}\vv{\Phi}\vv{y}$$
+
+  - obviously, $\lambda \rightarrow 0$, $\vv{\beta}_{\text{ridge}} \rightarrow \vv{\beta}_{\text{ml}}$ (which is $\vv{\Phi}^T\vv{\Phi})^{-1}\vv{\Phi}\vv{y}$)
+  - $\lambda \rightarrow \infty$, assume $\vv{\Phi}$ are formed by orthogonormal basis (columns), i.e. $\vv{\Phi}^T\vv{\Phi}=\vv{I}_{p\times p}$
+  $$\vv{\beta}_{\text{ridge}} = (\vv{I}+\lambda\vv{I})^{-1} \vv{\Phi y} = \frac{1}{\lambda+1} \vv{\Phi y}$$
+   $\vv{\beta} \rightarrow \vv{0}$ when $\lambda \rightarrow \infty$
+  - how about those sane $\lambda$? 
+$$\vv{\beta}_{\text{ridge}} =\frac{1}{\lambda+1}\vv{\Phi}\vv{y}= \frac{1}{\lambda+1}\underbrace{(\vv{\Phi}^T\vv{\Phi})^{-1}}_{ \vv{I}^{-1}=\vv{I}}\vv{\Phi}\vv{y}= \underbrace{\frac{1}{\lambda+1}}_{\text{btw }[0, 1]} \vv{\beta}_{\text{ml}} $$
+  it shrinks the ML estimator by some percentage. 
+  
+\footnotesize Orthogonormal basis are common: e.g. Fourier basis. If $\vv{\Phi}$ is not, the result is still similar: just replace 1 with the eigen value of $\vv{\Phi}^T\vv{\Phi}$
+
+
+## Example
+
+$\lambda \rightarrow 0$ (to the left): $\vv{\beta}_{\text{ridge}} \rightarrow \vv{\beta}_{\text{ml}}$
+
+$\lambda \rightarrow \infty$ (to the right):  $\vv{\beta}_{\text{ridge}} \rightarrow \vv{0}$
+
+other $\lambda$: somewhere in between; being shrinked by a percentage
+\vspace{-0.5cm}
+```{r, fig.show="hold", out.width="38%"}
+knitr::include_graphics("./figs/lec10_ridge.pdf")
+```  
+\footnotesize taken from An introduction to statistical learning; Chapter 6, James et al. 
+
+
+## Lasso regression $l_1$ penalty
+
+There is another popular choice for penalty: $l_1$ norm
+
+ $$L_{\text{lasso}}(\vv{\beta}) = \underbrace{\sum_{i=1}^m (\dd{y}  - \vv{\beta}^T\vv{\phi}(\Di{x}{i}))^2}_{\text{previous NLL loss}} + \lambda \underbrace{||\vv{\beta}||_1}_{l_1 \text{ penalty}}$$
+
+  - $l_1$ norm: $||\vv{x}||_1 = \sum_{j=1}^n |x_j|$, $l_2$ norm: $||\vv{x}||_2^2 = \sum_{j=1}^n x_j^2= \vv{x}^T\vv{x}$
+  - ridge shrinks (discount) the ML estimator by some ratio: $\beta_k^{\text{ridge}} = \delta \beta_k^{\text{ml}}$ ($0< \delta <1$)
+  - lasso directly shut them $\beta_k^{\text{lasso}} =0$
+  - why though?
+
+:::::: {.cols data-latex=""}
+
+::: {.col data-latex="{0.60\textwidth}"}
+
+Assume applying gradient descent and $x \rightarrow 0^+$
+
+$$\nabla_x l_1(x) = -1; \;\;\; \nabla_x l_1(x) = -x$$
+
+Penalty $l_1$ is constantly (strong); but $l_2$ diminishes
+
+:::
+:::{.col data-latex="{0.40\textwidth}"}
+```{r, out.width="70%"}
+xh <- seq(-1,1, by=0.05)
+plot(xh, xh^2, type="l", ylab="Penalty", xlab=expression(beta), col="red", lwd=2)
+lines(xh, abs(xh), type = "l", col="blue", lwd=2)
+text(0.5, 0.6, expression(l[1]), cex=2.5, col="blue")
+text(-0.75, 0.75^2-0.1, expression(l[2]), cex=2.5, col="red")
+```
+:::
+::::::
+
+
+
+<!-- ## Example: Polynomial basis regression (28 basis) with $l_1$ penalty -->
+
+<!-- ```{r, out.width="100%", fig.asp=0.4} -->
+<!-- par(mfrow=c(2,4)) -->
+<!-- par(mar=c(5,1,1,1)+.1) -->
+
+<!-- library(MASS) -->
+<!-- library(latex2exp) -->
+<!-- library(glmnet) -->
+<!-- # for(kk in c(1,2,3,4,5)){ -->
+<!-- kk <- 29 -->
+<!-- lambdas <- c(seq(0.0001, 0.0005, length.out = 5), 0.01, 0.02,2) -->
+<!-- xs <- seq(x_s, x_t, length.out = 100) -->
+<!-- # fittings <- c("underfitting", "", "good fit", "overfitting") -->
+<!-- j<-1 -->
+<!-- X_<-poly_basis(order=kk-1, dat = xx2) -->
+<!-- for(lami in lambdas){ -->
+<!-- # df_poly2<-data.frame(X=X_[,-1], y=y2) -->
+<!-- # fit_poly2 <- lm(y~.+0, df_poly2) -->
+<!-- # fit_poly2 <- lm.ridge(y~., df_poly2, lambda = lami) -->
+<!-- fit_poly2<-glmnet::glmnet(X_[,-1], y2, family = "gaussian", lambda = lami) -->
+<!-- # lines(xx, predict(fit_poly)) -->
+<!-- xss=poly_basis(order=kk-1, xs)[,-1] -->
+<!-- ys<- predict(fit_poly2, newx = xss) -->
+<!-- # ys <- as.matrix(xss) %*% coef(fit_poly2) -->
+<!-- mse <- sum(((sin(xs)-ys)^2)) -->
+<!-- # yhat <- as.matrix(X_) %*% coef(fit_poly2) -->
+<!-- yhat <- predict(fit_poly2, newx = X_[,-1]) -->
+<!-- loss <- sum((y2-yhat)^2) -->
+<!-- plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=TeX(sprintf("$\\lambda = %.2f$", lami*100)), ylab=NA,cex.lab=1.5) -->
+<!-- lines(xs, sin(xs), col="blue", lwd=2) -->
+<!-- lines(xs, ys, col="red", lwd=2) -->
+<!-- Corner_text(text=paste("test L = ", round(mse,2))) -->
+<!-- # Corner_text(text=paste("test L = ", round(mse,2)), "bottomleft") -->
+<!-- j<-j+1 -->
+<!-- # for(i in 1:ncol(xss)){lines(xs, xss[,i]*max(ys)/max(xss[,i]), col="darkgray", lty=2, lwd=1.5)} -->
+<!-- } -->
+<!-- ``` -->
+  
+## Example: Radial basis regression (28 basis) with $l_1$ penalty
+
+```{r, out.width="100%", fig.asp=0.4}
+par(mfrow=c(2,4))
+par(mar=c(5,1,1,1)+.1)
+
+library(MASS)
+library(latex2exp)
+library(glmnet)
+# for(kk in c(1,2,3,4,5)){
+kk <- 29
+lambdas <- c(0, 0.001, 0.005, 0.025, 0.05, 0.1, 0.5, 1)
+xs <- seq(x_s, x_t, length.out = 100)
+# fittings <- c("underfitting", "", "good fit", "overfitting")
+j<-1
+X_ <- rad_basis(knots = kk-1, dat = xx2, xmin = x_s, xmax = x_t)
+
+for(lami in lambdas){
+df_rad2<-data.frame(X=X_, y=y2)
+# fit_poly2 <- lm(y~.+0, df_poly2)
+fit_rad2<-glmnet::glmnet(X_, y2, family = "gaussian", lambda = lami, alpha=1)
+# lines(xx, predict(fit_poly))
+xss=rad_basis(knots = kk-1, dat = xs, xmin = x_s, xmax = x_t)
+ys<- predict(fit_rad2, newx = xss)
+mse <- sum(((sin(xs)-ys)^2))
+yhat <- predict(fit_rad2, newx= X_)
+loss <- sum((y2-yhat)^2)
+plot(xx2, y2, ylim=c(min(y2,ys),max(ys,y2)), xlab=TeX(sprintf("$\\lambda = %.3f$", lami)), ylab=NA,cex.lab=1.5)
+lines(xs, sin(xs), col="blue", lwd=2)
+lines(xs, ys, col="red", lwd=2)
+Corner_text(text=paste("test L = ", round(mse,2)))
+# Corner_text(text=paste("test L = ", round(mse,2)), "bottomleft")
+j<-j+1
+}
+```  
+
+  
+## Compare $l_1$ and $l_2$ penalty
+
+Compare and contrast ridge and lasso: ($\lambda$ has similar effect, i.e. regularisation)
+
+  - ridge shrinks the estimator by some percentage (smooth curve)
+  - Lasso more black and white (feature selection + learning) 
+  
+\vspace{-0.8cm}
+
+```{r, fig.show="hold", out.width="38%"}
+knitr::include_graphics("./figs/lec10_ridge.pdf")
+knitr::include_graphics("./figs/lec10_lasso.pdf")
+```  
+
+\footnotesize taken from An Introduction to Statistical Learning by James et al.  
+<!-- ## -->
+
+
+
+## Compare $l_1$ and $l_2$ penalty
+
+Consider $\vv{X}$ is a $m=100$, $n=100$ (features) matrix sampled from Gaussian ($N(0,1)$)
+$\di{y}{i}= \di{x}{i}_1 + \epsilon$; $\epsilon \sim N(0, \sigma^2=0.2^2)$
+
+```{r,cache=T, out.width="100%", fig.asp= 0.4}
+par(mfrow=(c(1,2)))
+par(mar=c(5,5,1,0.1)+.1)
+# XX<-matrix(rnorm(100000), nrow = 100, ncol = 100)
+# y <- XX[,1]+ rnorm(100, 0, 0.2)
+# testX <-matrix(rnorm(100000), nrow = 100, ncol = 100)
+# testY <- testX[,1] + rnorm(100, 0, 0.2)
+# rst_mle <- lapply(1:100, function(x) lm(y~., data.frame(x=XX[,1:x], y=y)))
+# rst_l2 <- lapply(2:100, function(x) cv.glmnet(x=XX[,1:x, drop=F], y= y, alpha = 0))
+# rst_l1 <- lapply(2:100, function(x) cv.glmnet(x=XX[,1:x, drop=F], y= y, alpha = 1))
+# save(rst_l1, rst_l2, rst_mle,XX,y, testX, testY, file = "./data/lec10_penaltyReg.Rdata")
+load("./data/lec10_penaltyReg.Rdata")
+mse <- function(sm)
+    mean(sm$residuals^2)
+
+test_mse_l1<-sapply(2:100, function(x){
+yhat<-predict(rst_l1[[x-1]], newx = testX[, 1:x], s = "lambda.min");
+mean((yhat-testY)^2)
+})
+
+test_mse_mle<-sapply(1:100, function(x){
+yhat<-predict(rst_mle[[x]],  data.frame(x=testX[, 1:x]));
+mean((yhat-testY)^2)
+})
+train_mse_mle <- sapply(rst_mle, mse)
+
+test_mse_l2 <- sapply(2:100, function(x){
+yhat<-predict(rst_l2[[x-1]], newx = testX[, 1:x], s="lambda.min");
+mean((yhat-testY)^2)
+})
+
+# test_mse_l1 <- c(test_mse_mle[1], test_mse_l1)
+# test_mse_l2 <- c(test_mse_mle[1], test_mse_l2)
+train_mse_l1 <- sapply(2:100, function(x){
+yhat<-predict(rst_l1[[x-1]], newx = XX[, 1:x], s = "lambda.min");
+mean((yhat-y)^2)
+})
+
+train_mse_l2 <- sapply(2:100, function(x){
+yhat<-predict(rst_l2[[x-1]], newx = XX[, 1:x], s= 0.00001);
+mean((yhat-y)^2)
+})
+
+# train_mse_l1 <- c(train_mse_mle[1], train_mse_l1)
+# train_mse_l2 <- c(train_mse_mle[1], train_mse_l2)
+
+plot(1:100, train_mse_mle, type="l", lty=2, col="blue", ylab="Training MSE", xlab= "Number of features", lwd=2, cex.lab=1.5)
+lines(2:100, train_mse_l1, type="l", lty=2, col="red", lwd=2)
+lines(2:100, train_mse_l2, type="l", lty=2, col="darkgreen", lwd=2)
+legend("bottomleft", c("MLE","Ridge", "Lasso"), col = c("blue", "darkgreen","red"),lty=c(2,2,2), cex=1.5) 
+
+plot(1:100, test_mse_mle, type="l", col="blue", ylim = c(0, 0.6), ylab="Testing MSE", xlab= "Number of features", lwd=2, cex.lab=1.5)
+lines(2:100, test_mse_l1, type="l", col="red", lwd=2)
+lines(2:100, test_mse_l2, type="l", col="darkgreen", lwd=2)
+
+legend("topleft", c("MLE","Ridge", "Lasso"), col = c("blue", "darkgreen","red"),lty=c(1,1,1), cex=1.5) 
+
+```
+## The full path 
+
+
+```{r, out.width="100%", fig.asp= 0.5}
+par(mfrow=(c(1,2)))
+par(mar=c(5,5,5,0.1)+.1)
+plot(rst_l2[[99]]$glmnet.fit, xvar="lambda", cex=2, main="Ridge regression")
+plot(rst_l1[[99]]$glmnet.fit, xvar="lambda", cex=2, main="Lasso regression")
+```
+
+
+
+## Another view: regularisation is MAP estimation
+
+Regularisation are just Maximum A Posteriori (MAP) estimator 
+
+$$P(\vv{\beta}|\vv{\Phi}, \vv{y}) \propto \underbrace{P(\vv{y}|\vv{\beta}, \vv{\Phi})}_{\text{Likelihood}} \underbrace{P(\vv{\beta})}_{\text{Prior}}$$
+
+
+MAP estimation maximise the posterior instead
+$$\vv{\beta}_{\text{MAP}} = \argmax_{\vv{\beta}}  P(\vv{\beta}|\vv{\Phi}, \vv{y})$$
+
+Why? $$\log P(\vv{\beta}|\vv{\Phi}, \vv{y}) \propto \log {P(\vv{y}|\vv{\beta}, \vv{\Phi})}+ \log  {P(\vv{\beta})}$$
+
+if we assume $P(\vv{\beta}) = N(0, \gamma \vv{I})$ \footnotesize (a multivariate Gaussian with diagonal covariance)
+$$\normalsize \log P(\vv{\beta}) = C - \frac{1}{2\gamma}\vv{\beta}^T\vv{\beta} $$
+$$\normalsize \text{Therefore: } \vv{\beta}_{\text{MAP}} =\vv{\beta}_{\text{ridge}}$$
+<!-- And ML estimation  -->
+<!-- $$\vv{\beta}_{\text{ML}} = \argmax_{\vv{\beta}}  \underbrace{P(\vv{y}|\vv{\beta}, \vv{\Phi})}_{\text{Likelihood}}$$ -->
+<!-- set.seed(1000) -->
+<!-- data(iris) -->
+
+<!-- # # Two class case -->
+<!-- # x <- iris[51:150, c("Sepal.Length", "Sepal.Width", "Species")] -->
+<!-- # x$Species <- factor(x$Species) -->
+<!-- #  -->
+<!-- # # Three classes -->
+<!-- # # x <- iris[1:150, c("Sepal.Length", "Sepal.Width", "Species")] -->
+<!-- #   -->
+<!-- # poly(x[,1:2]) -->
+
+<!-- #  -->
+<!-- # decisionplot(model, x, class = "Species", main = "Logistic Regression") -->
+
+<!-- set.seed(1000) -->
+
+<!-- library(mlbench) -->
+<!-- x <- mlbench.circle(100) -->
+<!-- #x <- mlbench.cassini(100) -->
+<!-- #x <- mlbench.spirals(100, sd = .1) -->
+<!-- #x <- mlbench.smiley(100) -->
+<!-- x <- cbind(as.data.frame(x$x), factor(x$classes)) -->
+<!-- colnames(x) <- c("x", "y", "class") -->
+
+<!-- head(x) -->
+<!-- library(e1071) -->
+<!-- model <- svm(class ~ ., data=x, kernel = "polynomial", shrinkage=F , degree=80) -->
+<!-- decisionplot(model, x, class = "class", main = "SVD (polynomial)") -->
+<!-- ``` -->
+
+<!-- ##  -->
+
+<!-- ```{r, out.width="95%", fig.asp=0.85} -->
+<!-- par(mar=c(5,5,5,0.1)+.1) -->
+<!-- plot(XX[1:50, 2], XX[1:50, 3], pch=1, col="blue", xlim=c(min(XX[,2]), max(XX[,2])), ylim=c(min(XX[,3]), max(XX[,3])), xlab=expression(x[1]), ylab=expression(x[2]), cex=3, cex.lab=2.5, cex.axis=2) -->
+<!-- points(XX[51:100, 2], XX[51:100, 3], pch=8, col="red", cex=3) -->
+<!-- x1<- seq(-12, 10, by=0.5) -->
+<!-- y1<- (-fit[1]-x1*fit[2])/fit[3] -->
+<!-- lines(x1, y1, lwd=5, lty=2, col="darkgreen") -->
+<!-- poly_basis() -->
+
+<!-- fit2<-glm(y~X.1+X.2, data=dat_, family = "binomial") -->
+<!-- # text(-7.5, 4.75, "P=0.5", cex=3) -->
+<!-- # contour(xg, yg, z, nlevels = 80, xlab = expression(mu[1]),  -->
+<!-- #         ylab = expression(mu[2])) -->
+<!-- #  -->
+<!-- # points(t(rstGD2[[1]][2:3,]), pch=20, type="b", col="blue") -->
+<!-- # points(t(rstND2[[1]][2:3,]), pch=20, type="b", col="red") -->
+<!-- # points(t(rstGD_NoLineS[[1]][2:3,]), pch=20, type="b", col="purple") -->
+
+<!-- ``` -->
+<!-- ## Example of fixed basis function -->
+
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=1) -->
+
+<!-- ``` -->
+
+
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=2) -->
+
+<!-- ``` -->
+
+
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=3) -->
+
+<!-- ``` -->
+
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=4) -->
+
+<!-- ``` -->
+
+
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=5) -->
+
+<!-- ``` -->
+
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=8) -->
+
+<!-- ``` -->
+<!-- ## -->
+
+<!-- ```{r, out.width="100%", fig.asp =0.35} -->
+
+<!-- plotbasis(k=10) -->
+
+<!-- ``` -->
+## Suggested reading
+
+- MLAPP 7.5, 13.3, 13.4*
+- ESL 3.4
+- interesting paper*: A comparison of numerical optimizers for logistic regression by Thomas Minka. \url{https://tminka.github.io/papers/logreg/minka-logreg.pdf}
+
+\bigskip
+
+\small Exercise for this lecture (you can discuss it with me in lab session or with your classmates)
+
+ESL 3.12 Show that the ridge regression estimatees can be obtained by ordinary least squares regression on an augmented data set. We augment the centered matrix $\vv{X}$ with p additional rows $\sqrt{\lambda}\vv{I}$, and augment $y$ with p zeros. By introducing artificial data having response zero, the fitting forces a shrinkage. 
+

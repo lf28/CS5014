@@ -32,6 +32,11 @@ set.seed(0)
 
 ```
 
+```{r}
+sigmoid <- function(x){
+  1/(1+exp(-x))
+}
+```
 
 # Introduction
 
@@ -168,7 +173,7 @@ The log likelihood function is
 ```{r, out.width='100%', fig.asp=0.8}
 par(mar=c(5,5,3,0.1)+.1)
 xx <- seq(-5, 5, by = 0.01)
-plot(xx, pracma::sigmoid(xx), type="l", lwd =4, xlab = expression(paste(theta^T,"x")), ylim=c(0,1), ylab = "Sigmoid", col="red", cex.lab=3, cex.main=3, cex.axis=2)
+plot(xx, sigmoid(xx), type="l", lwd =4, xlab = expression(paste(theta^T,"x")), ylim=c(0,1), ylab = "Sigmoid", col="red", cex.lab=3, cex.main=3, cex.axis=2)
 # curve(1/(1+exp(-1*x)), from =-8, to =8, xlab = "x", ylab = "Sigmoid", col="red", cex.lab=2, cex.main=2, cex.axis=2)
 ```
 
@@ -224,7 +229,7 @@ nll <- function(x, y, mod){
   a<- mod[1]
   b<- mod[2]
   score <- a*x+b
-  p <- pracma::sigmoid(score)
+  p <- sigmoid(score)
   -1*sum(y*log(p) + (1-y)*(log(1-p)))
 }
 x<- c(x_1, x_2)
@@ -361,7 +366,7 @@ $$\dd{l}(\vv{\theta}) = \dd{y} \log \sigma^{(i)}+(1-\dd{y})\log(1-\sigma^{(i)})$
 \nabla_{\vv{\theta}}\dd{l} = ? 
 \end{align*}
 
-The following identities might be useful: $\frac{d\sigma(x)}{dx} = \sigma(1-\sigma)$ and $\frac{\partial \vv{a}^T\vv{x}}{\vv{x}} = \vv{a}^T$
+The following identities might be useful: $\frac{d\sigma(x)}{dx} = \sigma(1-\sigma)$ and $\frac{\partial \vv{a}^T\vv{x}}{\partial \vv{x}} = \vv{a}^T$
 
 ## Gradient of logistic regression
 
@@ -403,7 +408,7 @@ It means apply $\sigma$ to each element of $\vv{X\theta}$
 \begin{algorithm}[H]
  initialise random $\vv{\theta}_0$\;
  \While{not converge}{
-    $\vv{g}_t \leftarrow -\nabla_{\vv{\theta}}\mathcal{L}(\vv{\theta}_t)$\;
+    $\vv{g}_t \leftarrow (-\nabla_{\vv{\theta}}\mathcal{L}(\vv{\theta}_t))^T$\;
     $\vv{\theta}_{t+1} \leftarrow \vv{\theta}_{t} - \alpha\vv{g}_t $\;
  }
  \caption{Gradient descent}
@@ -411,8 +416,8 @@ It means apply $\sigma$ to each element of $\vv{X\theta}$
 
 \bigskip 
 \small
-note $\vv{g}_t$ is the gradient of negative $\mathcal{L}$
-so descending or mimising negative log likelihood
+note that $\vv{g}_t$ is the gradient of negative $\mathcal{L}$, so it is
+a descending algorithm; also we transpose the gradient (assumed row vector) to a column vector here to make the notation consistent as $\vv{g}_t$ is assumed a column vector.
 \end{column}
 \end{columns}
 
@@ -481,7 +486,7 @@ When data size is massive, gradients are expensive to calculate
  \While{not converge}{
     randomly permute data\;
     \For{i $\in 1\ldots m$}{
-    $\vv{g}_t \leftarrow -\nabla_{\vv{\theta}}\dd{l}(\vv{\theta}_t)$\;
+    $\vv{g}_t \leftarrow (-\nabla_{\vv{\theta}}\dd{l}(\vv{\theta}_t))^T$\;
     $\vv{\theta}_{t+1} \leftarrow \vv{\theta}_{t} - \alpha\vv{g}_t $\;
     }
  }
@@ -495,13 +500,13 @@ When data size is massive, gradients are expensive to calculate
 ```{r}
 logisGrad <- function(y, X, theta){
   score <- X%*%theta
-  mu<-pracma::sigmoid(score)
+  mu<-sigmoid(score)
   return(t(X)%*%(y-mu))
 }
 
 logisNll <- function(y, X, theta){
   score <- X%*%theta
-  p <- pracma::sigmoid(score)
+  p <- sigmoid(score)
   -1*sum(y*log(p) + (1-y)*(log(1-p)), na.rm=T)
 }
 
@@ -561,7 +566,7 @@ plot(x_1[1:100], y=y[1:length(x_1)], ylim=c(-0.1,1.1), xlim=c(-15, 13), pch= 1, 
      main=(paste( "L=", round(nll1, digits = 2))), cex.main=3, cex.lab=3)
 points(x_2, y = y[(length(x_1)+1):length(y)], pch = 3, cex=2, col="red")
 xx <- cbind(1,seq(-15,12, by=0.01))
-p <- pracma::sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
+p <- sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
 lines(xx[,2], p, col="purple", lwd=2)
 i<-2
 nll2 <- rstGD2[[2]][i]
@@ -570,7 +575,7 @@ plot(x_1[1:50], y=rep(0, 50), ylim=c(-0.1,1.1), xlim=c(-15, 18), pch= 1, col ="b
 points(x_2, y = rep(1, 100), pch = 3, cex=2, col="red")
 
 
-p2 <- pracma::sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
+p2 <- sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
 # p2 <- pracma::sigmoid( xx%*%t(t(rstGD[[1]][1:2,2])))
 lines(xx[,2], p2, col="purple", lwd=2)
 i<-50
@@ -580,7 +585,7 @@ plot(x_1[1:50], y=rep(0, 50), ylim=c(-0.1,1.1), xlim=c(-15, 13), pch= 1, col ="b
 points(x_2, y = rep(1, 100), pch = 3, cex=2, col="red")
 
 
-p3 <- pracma::sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
+p3 <- sigmoid( xx%*%t(t(rstGD2[[1]][1:2,i])))
 lines(xx[,2], p3, col="purple", lwd=2)
 ```
 
@@ -794,7 +799,7 @@ Remember gradient descent step
 \begin{algorithm}[H]
  initialise random $\vv{\theta}_0$\;
  \While{not converge}{
-    $\vv{g}_t \leftarrow -\nabla_{\vv{\theta}}{L}(\vv{\theta}_t)$\;
+    $\vv{g}_t \leftarrow (-\nabla_{\vv{\theta}}{L}(\vv{\theta}_t))^T$\;
     $\vv{H}_t \leftarrow -\nabla^2_{\vv{\theta}}{L}(\vv{\theta}_t)$\;
     solve for Newton's direction: $\vv{H}_t\vv{d}_t = \vv{g}_t$\;
     $\vv{\theta}_{t+1} \leftarrow \vv{\theta}_{t} - \vv{d}_t $\;

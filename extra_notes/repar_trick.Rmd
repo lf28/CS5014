@@ -42,7 +42,7 @@ In the lecture, we did an example with $0<\theta<1$ for the Bernoulli likelihood
 \end{align*}
 where $R = \sum_{i=1}^m \di{y}{i}$ is the total count of heads in the dataset, and $m$ is total size of the data. 
 
-The problematic bit is $\theta$  has to fall into the range of $(0,1)$, which is hard to deal with when it comes to gradient descent. Therefore, we use sigmoid transform $$\sigma(x) = \frac{1}{1+e^{-x}}$$ to relate $\theta$ to $\beta$: $$\sigma(\beta) = \theta \in (0,1);$$ Note that $\theta \in R$ is no longer restricted. Then we can simply do gradient ascent (we are maximising the likelihood) to find the ML estimator. 
+The problematic bit is $\theta$  has to fall into the range of $(0,1)$, which is hard to deal with when it comes to gradient descent. Therefore, we use sigmoid transform $$\sigma(x) = \frac{1}{1+e^{-x}}$$ to relate $\theta$ to $\beta$: $$\sigma(\beta) = \theta \in (0,1);$$ Note that $\beta \in R$ is no longer restricted. Then we can simply do gradient ascent (we are maximising the likelihood) to find the ML estimator. 
 
  The relevant gradients are $$\frac{d\mathcal{L}}{d\theta} = \frac{R}{\theta} -\frac{(m-R)}{1-\theta}; \frac{d\theta}{d\beta}\equiv \frac{d\sigma(\beta)}{d\beta} = \sigma(\beta)(1-\sigma(\beta)).$$ Therefore, the gradient is
 
@@ -139,7 +139,7 @@ We consider the Gaussian likelihood model. The Gaussian log likelihood function 
   &= -\frac{m}{2}\log(2\pi \sigma^2)- \frac{1}{2\sigma^2} \sum_{i=1}^m (\di{y}{i}-\mu)^2. \nonumber
   \end{align}
   
-To simply the problem, let us assume $\mu$ is known. The only unknown parameter is $\sigma^2$, the variance. Note that $$\frac{d\mathcal{L}(\sigma^2)}{d\sigma^2} = -\frac{m}{2\sigma^2} +\frac{\sum_{i=1}^m(\di{y}{i} -\mu)^2}{2(\sigma^2)^2};$$ apply the chain rule, we have the new gradient 
+To simplify the problem, let us assume $\mu$ is known. The only unknown parameter is $\sigma^2$, the variance. Note that $$\frac{d\mathcal{L}(\sigma^2)}{d\sigma^2} = -\frac{m}{2\sigma^2} +\frac{\sum_{i=1}^m(\di{y}{i} -\mu)^2}{2(\sigma^2)^2};$$ apply the chain rule, we have the new gradient 
 
 $$\frac{d\mathcal{L}}{d\beta} = \frac{d\mathcal{L}(\sigma^2)}{d\sigma^2} e^{\beta} = \left (-\frac{m}{2 e^{\beta}} +\frac{\sum_{i=1}^m(\di{y}{i} -\mu)^2}{2( e^{\beta})^2}\right )e^{\beta}= -\frac{m}{2}+\frac{\sum_{i=1}^m(\di{y}{i} -\mu)^2}{2 e^{\beta}}.$$ 
 

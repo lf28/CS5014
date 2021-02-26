@@ -129,7 +129,7 @@ the regression is called **linear regression**
 
 \bigskip
 
-  - a dummy predictor $x_0^{(1)}=1$ is added to $\vv{x}^{(i)}$
+  - a dummy predictor $x_0^{(i)}=1$ is added to $\vv{x}^{(i)}$
 
 
 
@@ -390,7 +390,7 @@ $\vv{e}$ is minimised when $\hat{\vv{y}}$ is $\vv{y}$'s projection in $\vv{span}
 
 ## Hat matrix
 
-The projected vector : $$\hat{\vv{y}} = \vv{X}\vv{\theta} = \underbrace{\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}}_{\text{hat matrix}}\vv{y}$$
+The projected vector is (remember $\vv{\theta}_{ls}= (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}\vv{y}$): $$\hat{\vv{y}} = \vv{X}\vv{\theta}_{ls} = \underbrace{\vv{X} (\vv{X}^{T}\vv{X})^{-1}\vv{X}^{T}}_{\text{hat matrix}}\vv{y}$$
   
   - ``it gives $\vv{y}$ a hat'': so given this name 
   - it is also a projection matrix: it projects $\vv{y}$ to its projection $\hat{\vv{y}}$

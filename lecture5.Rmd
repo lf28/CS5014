@@ -320,7 +320,7 @@ Objective: **probabilistic perspective** of linear regression
 
   - justify least squared error: $(\vv{y} - \vv{X\theta})^T(\vv{y}-\vv{X\theta})$ 
   - maximum likelihood estimator: $\vv{\theta}_{\text{ML}}$
-  - BUT nothing new: $\vv{\theta}_{\text{ML}} = \vv{\theta}_{\text{LS}} = (\vv{XX})^{-1}\vv{Xy}$
+  - BUT nothing new: $\vv{\theta}_{\text{ML}} = \vv{\theta}_{\text{LS}} = (\vv{X}^T\vv{X})^{-1}\vv{Xy}$
   
 \bigskip 
 \pause 
@@ -339,7 +339,7 @@ So why bother ?
 
 Review of probability theory
   
-  - univariate Guassian
+  - univariate Gaussian
   
   \bigskip
   
