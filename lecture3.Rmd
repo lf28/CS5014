@@ -370,7 +370,7 @@ $\vv{y}= \vv{X\theta}$ is over determined: $m>n$
 \begin{figure}
     \centering
     \includegraphics[width = 0.8\textwidth]{./figs/projview1.png}
- % \caption{Awesome figure}
+ % \caption{}
 \end{figure}  
 
 

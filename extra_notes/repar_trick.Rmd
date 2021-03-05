@@ -5,29 +5,50 @@ author: "Lei Fang"
 date: "01/02/2021"
 documentclass: article
 output: 
-  pdf_document:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: 
     number_sections: true
     includes:
       in_header: notes_preamble.tex
-  html_document:
-    toc: true
-    toc_depth: 2
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(webgl = hook_webgl,
+                      echo = TRUE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
 ```
+
+<!--- For HTML Only --->
+`r if (!knitr:::is_latex_output()) '
+$\\DeclareMathOperator*{\\argmin}{argmin}$
+$\\newcommand{\\var}{\\mathrm{Var}}$
+'`
 
 # Reparameterisation for gradient descent
 
-Assume we are asked to optimise a function $L(\theta)$ with respect to $\theta$. If $\theta$ only takes value in certain ranges, say $\theta>0$, $0<\theta<1$, we usually transform the parameter to another parameter $-\infty<\beta < \infty$ such that 
-
+Suppose you are asked to optimise a function $L(\theta)$ with respect to $\theta$. Your first choice probably should be gradient descent if $L$ is a continous and smooth function of $\theta$. However, if $\theta$'s value range is restricted, e.g. $\theta>0$, $0<\theta<1$, gradient descent might fail as the algorithm might step out side of the legal region. A common trick is to find a surrogate $-\infty<\beta < \infty$ such that 
 $$f(\beta) = \theta$$
 
-and apply gradient descent with respect to $\beta$ instead. As $\beta$ is in the range of $R$. By doing this, gradient descent will usually perform more stably without the danger of stepping into those undefined regine of $\theta$. When it converges, we can apply the same transform to find the corresponding $\theta \leftarrow f(\beta)$\footnote{$\leftarrow$ means assignment.}. 
+and apply gradient descent with respect to $\beta$ instead. By doing this, gradient descent will usually perform more stably without the danger of undefined gradients. When the gradient descent converges, we can apply the same transform to find the corresponding $\theta \leftarrow f(\beta)$\footnote{$\leftarrow$ means assignment.}. 
 
-The new gradient can be found by using chain rule:
+Common choices of such $f$ are usually simples functions. 
+
+  - for $\theta>0$, exponential function can be used as $\exp{(\beta)}=\theta$, and $\beta \in R$;
+  - for $\theta \in [0,1]$, sigmoid function is one of the options as $\sigma(\beta) =\theta$, which squeezes $\beta\in R$ to a value between 0 and 1. Note that $$\sigma(x) = \frac{1}{1+\exp{(-x)}},$$ and a plot of a sigmoid function is shown below in Fig \@ref(fig:sigmoid).
+  
+```{r "sigmoid", out.width="40%", fig.cap="Sigmoid function that squeezes every real value to between 0 and 1", echo=F, fig.align='center'}
+xx<- seq(-10, 10, by = 0.5)
+plot(xx, 1/(1+exp(-xx)), type="l", ylab=expression(sigma), xlab="x")
+```
+  
+
+The new gradient w.r.t $\beta$ can be found by using chain rule:
 $$\frac{d\mathcal{L}(f(\beta))}{d\beta} = \frac{d\mathcal{L}(\theta)}{d\theta}\frac{d\theta}{d\beta}.$$ Equivelently, you can also write $\mathcal{L}$ as a function of $\beta$ explicitly $\mathcal{L}(\beta)$ and take the derivative with $\beta$ directly. You should get exactly the same result. 
 
 

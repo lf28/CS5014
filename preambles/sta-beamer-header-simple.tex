@@ -14,6 +14,15 @@
 % \usepackage[,dvipsnames]{xcolor}
 \tcbset{highlight math style={enhanced,
   colframe=red,colback=white,arc=0pt,boxrule=1pt}}
+  
+\usepackage{subfig}
+% \usefonttheme{professionalfonts}
+% \usepackage{times}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usetikzlibrary{arrows,shapes}
+  
 
 \newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
 \newcommand{\Gaussian}[3]{\ensuremath{\frac{1}{\sqrt{2\pi}#3}
@@ -53,8 +62,8 @@
 \setbeamertemplate{title page}[empty]
 
 \setbeamerfont{subtitle}{size=\small}
-
-\setbeamercovered{transparent}
+\setbeamerfont{normal text}{size=\tiny}
+\setbeamercovered{invisible}
 
 \definecolor{clemsonpurple}{HTML}{522D80}
 \definecolor{stablue}{HTML}{0052cc}

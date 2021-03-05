@@ -1,9 +1,11 @@
 %In the preamble
 
 %Numbered environment
-\newcounter{example}[section]
-\newenvironment{example}[1][]{\refstepcounter{example}\par\medskip
-   \noindent \textbf{Example~\theexample. #1} \rmfamily}{\medskip}
+% \newcounter{example}[section]
+% \newenvironment{example}[1][]{\refstepcounter{example}\par\medskip
+%    \noindent \textbf{Example~\theexample. #1} \rmfamily}{\medskip}
+
+
 \newcommand{\di}[2]{\ensuremath{ #1^{(#2)}}}
 \newcommand{\Di}[2]{\ensuremath{ \vv{#1}^{(#2)}}}
 \newcommand{\normal}[2]{\ensuremath{\mathcal{N}\left (#1,#2 \right )}}
@@ -30,7 +32,9 @@
 
 %Numbered environment defined with Newtheorem
 \usepackage{amsmath}
-\newtheorem{SampleEnv}{Sample Environment}[section]
+\usepackage{amsthm}
+\newtheorem{SampleEnv}{Sample Environment}
 
-
+\theoremstyle{definition}
+\newtheorem{exmp}{Example}[section]
 

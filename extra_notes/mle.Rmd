@@ -1,0 +1,142 @@
+---
+title: "CS5014 Machine learning"
+subtitle: "Maximum likelihood estimation"
+author: "Lei Fang"
+date: "01/02/2021"
+documentclass: article
+output: 
+  bookdown::pdf_document2: 
+    number_sections: true
+    includes:
+      in_header: notes_preamble.tex
+  bookdown::html_document2: default
+---
+
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(
+                      echo = TRUE,
+                      fig.align = 'center',
+                      message =FALSE,
+                      warning = FALSE
+                      )
+```
+
+<!--- For HTML Only --->
+<!-- `r if (!knitr:::is_latex_output()) ' -->
+<!-- $\\DeclareMathOperator*{\\argmin}{argmin}$ -->
+<!-- $\\newcommand{\\var}{\\mathrm{Var}}$ -->
+<!-- '` -->
+
+
+
+\section{Maximum Likelihood Estimation}
+Maximum likelihood estimation is a general method we use to estimate statistical or machine learning models. It usually has the following ingredients.
+
+\begin{itemize}
+	\item $X,y$: the observed dataset ($y$ is optional for unsupervised learning) 
+	\item $P$: A probabilistic model, or likelihood model for $P(y|X;\theta)$, $P(X,y|\theta)$ or $P(X|\theta)$,
+	\begin{itemize}
+		\item In other words, a data generating process that we have assumed for $X,y$
+		\item $\theta$ is the parameters of the likelihood function
+		\item For some supervised learning models (namely, discriminative models), the predictors $X$, are assumed fixed (we do not model them in the generating process), so we only model $P(y|X)$: the conditional distribution of $y$ given $X$. 
+		\begin{itemize}
+			\item Examples include: linear regression, logistic regression, neural networks
+		\end{itemize}
+		\item For some other supervised learning models (generative models), we model both $P(X,y)$; 
+		\begin{itemize}
+			\item Examples are Naive Bayes, discriminant analysis etc.
+		\end{itemize}
+		\item For unsupervised learning, we model $P(X)$ only for obvious reasons
+	\end{itemize}
+	\item $\theta$: Parameters associatd with the model $P$
+\end{itemize}
+
+Note that $P(X|\theta)$, $P_{\theta}(X)$, $P(X;\theta)$ are used interchangeably. They all mean the same thing: conditional on the parameter $\theta$, the probability distribution of $X$. 
+
+\subsection{Likelihood function}
+
+The \textbf{likelihood} function is defined as $l(\theta) = P(\mathcal{D}|\theta)$: the conditional probability of observing dataset $\mathcal{D}$ given $\theta$
+\begin{itemize}
+	\item It is a function of $\theta$: different input $\theta$ will output likelihoods of observing $\mathcal{D}$
+	\item Depending on the problem, $\mathcal{D}$ can be $\mathcal{D}=\{y\}$ only (discriminative models), $\mathcal{D}=\{X,y\}$ (generative models) or $\mathcal{D}=\{X\}$ (unsupervised learning). Do not worry if you do not understand these different terminologies, we will cover them in detail soon. But you should know there are different ways to model the training data. 
+\end{itemize}
+
+MLE is a technique that finds the ``best'' $\theta$ by maximising ${l}(\theta)$: the chance of seeing the data $\mathcal{D}$ given the input $\theta$, which is noted as 
+\begin{equation}
+ \theta_{ML} = \argmax_{\theta} l(\theta)
+\end{equation}
+
+We usually deal with the log transformed version of the likelihood function $\mathcal{L}(\theta) \equiv \log l(\theta)$ (log of products are sum of logs, which is easier to deal with), called log likelihood function, denoted with $\mathcal{L}$. Note that the maximum $\theta$ is invariant after the log transformation: because log function is a monotonically increasing function: i.e. $$l(\theta_1) > l(\theta_2) \Leftrightarrow \mathcal{L}(\theta_1) >\mathcal{L}(\theta_2),$$ therefore,
+$$\theta_{ML} = \argmax_{\theta} \mathcal{L}(\theta)$$
+
+
+
+\begin{example}{Linear regression}
+
+We will revisit the linear regression case here. Linear regression model can be specified as following: 
+$$y^{(i)} =\vv{\theta}^T\vv{x}^{(i)}  + e^{(i)}, \; \di{e}{i} \sim \normal{0}{\sigma^2}$$
+  
+  \begin{itemize}
+  \item $i = 1,\ldots,m$: index of data samples (row index), $n$ is the number of predictors
+  \item $\vv{x}^{(i)} = [1, x_{1}^{(i)}, \ldots, x^{(i)}_n]^T$ is a $(n+1) \times 1$ vector; 
+  \begin{itemize}
+  	\item $\vv{x}^{(i)}$ are assumed fixed values, or not random
+  \end{itemize}
+ 	\item $e^{(i)}$, the prediction error is assumed Gaussian distributed with zero mean and variance $\sigma^2$
+ 	\item $\vv{\theta}, \sigma^2$ are the model parameter.
+ 	\item as $\di{y}{i}= \vv{\theta}^T\vv{x}^{(i)} +\di{e}{i} $ is a linear function of $\di{e}{i}$, therefore $$\di{y}{i} \sim \normal{\vv{\theta}^T\Di{x}{i}}{\sigma^2},$$ which means $\di{y}{i}$ is Gaussian distributed with mean $\vv{\theta}^T\Di{x}{i}$ and variance $\sigma^2$.
+ 	Note that a Gaussian likelihood's density function is: $$p(\di{y}{i}|\vv{\theta},\sigma^2, \di{\vv{x}}{i}) = \frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}\left(-\frac{(\di{y}{i}-\vv{\theta}^T\di{\vv{x}}{i})^2}{2\sigma^2}\right),$$ the log transformed likelihood is then
+$$\log p(\di{y}{i}; \vv{\theta}, \sigma^2, \Di{x}{i}) = -\frac{1}{2} \log(2\pi\sigma^2) -\frac{1}{2\sigma^2}(\di{y}{i}-\vv{\theta}^T\Di{x}{i})^2$$
+
+  \end{itemize}
+
+
+
+
+The model parameters are $\vv{\theta}, \sigma^2$.  The log likelihood function is \begin{align}
+\mathcal{L}(\vv{\theta}, \sigma^2) &= \log \prod_{i=1}^m p(\di{y}{i}; \vv{\theta}, \sigma^2, \Di{x}{i}) \label{eq:lik1}\\
+&= \sum_{i=1}^m \log p(\di{y}{i}; \vv{\theta}, \sigma^2, \Di{x}{i}) \label{eq:lik2}\\
+&= \sum_{i=1}^m   -\frac{1}{2} \log(2\pi\sigma^2) -\frac{1}{2\sigma^2}(\di{y}{i}-\vv{\theta}^T\Di{x}{i})^2 \label{eq:lik3} \\
+&= -\frac{m}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^m (\di{y}{i} - \vv{\theta}^T\di{\vv{x}}{i})^2 \label{eq:lik4}
+\end{align}
+
+Eq~(\ref{eq:lik1}) is true because of the definition of $\mathcal{L}$ and also we assume all observations are independent; Eq~(\ref{eq:lik2}) is true because of log function. The third step simply plugs in the log transformed Guassian likelihood function. And the last step just applies summation to the individual entries. You are expected to verify the above steps by yourself!
+
+It is then obvious that maximising $\mathcal{L}(\vv{\theta}, \sigma^2)$ with respect to $\vv{\theta}$ has the same effect as minimising the sum of square of error term:
+$$\sum_{i=1}^m (\di{y}{i} - \vv{\theta}^T\di{\vv{x}}{i})^2, $$
+which shows that $\theta_{ML}=\theta_{LS}$. So all the results we derived in Lecture 3 applies here: $$\vv{\theta}_{ML}=\vv{\theta}_{LS} = (\vv{X}^T\vv{X})^{-1}\vv{X}^T\vv{y}.$$
+
+For completeness, the gradient of $\mathcal{L}$ w.r.t ${\sigma^2}, \vv{\theta}$ are listed below:
+
+\begin{align}
+\frac{\partial \mathcal{L}}{\partial \vv{\theta}} &=  -\frac{1}{\sigma^2} \sum_{i=1}^m (\di{y}{i}-\vv{\theta}^T\Di{x}{i}) (\Di{x}{i})^T = -\frac{1}{\sigma^2} (\vv{y}- \vv{X\theta})^T\vv{X}; \\
+\frac{\partial \mathcal{L}}{\partial \sigma^2} &=-\frac{m}{2\sigma^2} +\frac{1}{2(\sigma^2)^2} \sum_{i=1}^m(\di{y}{i} -\vv{\theta}^T\Di{x}{i})^2
+\end{align}
+
+I have used the chain rule to derive the gradient for $\vv{\theta}$. And note that we define gradients as row vectors, so $\nabla_{\vv{\theta}} \vv{\theta}^T \Di{x}{i} = (\Di{x}{i})^T$ (a row vector). You should verify the above by yourself! if you set the derivative to zero, then a closed form estimators can be found:
+\begin{align}
+\vv{\theta}_{ML} &= (\vv{X}^T\vv{X})^{-1}\vv{X}^T\vv{y} \\
+\sigma^2_{ML} &= \frac{1}{m} \sum_{i=1}^m(\di{y}{i} -\vv{\theta}_{ML}^T\Di{x}{i})^2
+\end{align}
+\end{example}
+
+
+
+The following exercises are optional. But if you are interested, please have a go. It should take less than 30 mins. 
+
+\section*{Exercises}
+The best way to understand a technique is to use it. Let's derive the MLE for Poisson distribution. If your dataset $\vv{y}$ are counting data, i.e. $\di{y}{i}, i = 0,1,2,\ldots, m$, e.g. the number of cars in a car park, the number of visits to your website; a natural choice is Poisson distribution (or regression if you have predictors). A Poisson distribution's probability mass function (p.m.f) is
+  $$P(Y=k) = \frac{\theta^k e^{-\theta}}{k!},$$
+  where $\theta>0$ is the model parameter, and Y can only take $k= 0,1,2\ldots$ Suppose you are given a dataset of $m$ observations, $\vv{y}=\{\di{y}{i}, i = 0,1,2,\ldots, m\}$, sampled from a Poission distribution with $\theta$. 
+\begin{itemize}
+    \item[1)] Identify the three ingredients of the estimation problem, i.e. what is the data $\mathcal{D}$, parameter $\theta$, model $P$.
+    \item[2)] Plot the p.m.fs for some Poisson distributions for different $\theta = 1, 5, 10$.
+	\item[3)] Write down the log likelihood function $\mathcal{L}(\theta)$.
+	\item[4)] Derive the gradient of $\mathcal{L}$ w.r.t $\theta$; and find the closed form ML estimator.
+	\item[5)] Use the reparameterisation trick to write a simple gradient ascent/descent algorithm to find $\theta_{ML}$ (check Lecture 5). Note that vanilla gradient descent might struggle as $\theta>0$. You need to apply the reparameterisation trick here. 
+	\item[6)] Try your algorithm with some artificially sampled data. Check this~\url{https://numpy.org/doc/stable/reference/random/generated/numpy.random.poisson.html} for sampling from a Poisson distribution. And see whether your program can converge to your analytical solution. 
+\end{itemize}
+
